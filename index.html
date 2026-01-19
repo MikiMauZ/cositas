@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ cositas.space ✨</title>
+    <style>
+        /* --- FUENTES Y VARIABLES (Estética Glass) --- */
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&family=Quicksand:wght@400;700&display=swap');
+
+        :root {
+            --primary: #ff8fa3;
+            --secondary: #a29bfe;
+            --glass: rgba(255, 255, 255, 0.65);
+            --glass-strong: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        body {
+            background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+            font-family: 'Quicksand', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #555;
+            overflow: hidden;
+        }
+
+        /* Fondo animado (Blobs) */
+        .bg-blobs { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
+        .blob { position: absolute; filter: blur(60px); opacity: 0.6; animation: moveBlob 20s infinite alternate; }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #a18cd1; border-radius: 40% 60% 70% 30%; }
+        .blob-2 { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: #fbc2eb; border-radius: 60% 40% 30% 70%; animation-duration: 25s; }
+        @keyframes moveBlob { from { transform: translate(0,0) rotate(0deg); } to { transform: translate(50px, 50px) rotate(20deg); } }
+
+        /* Cursor Mágico */
+        .cursor-trail { position: fixed; width: 10px; height: 10px; background: rgba(255, 255, 255, 0.8); border-radius: 50%; pointer-events: none; z-index: 9999; animation: fadeOut 1s forwards; }
+        @keyframes fadeOut { to { opacity: 0; transform: scale(0); } }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .container {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            width: 95%; max-width: 450px;
+            height: 90vh; max-height: 800px;
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+            display: flex; flex-direction: column;
+            position: relative; z-index: 10;
+            overflow: hidden;
+        }
+
+        /* --- CABECERA --- */
+        .main-header {
+            padding: 20px; text-align: center;
+            background: rgba(255,255,255,0.4);
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+        }
+        .site-title { font-family: 'Fredoka', sans-serif; font-size: 2.2em; color: #ff6b6b; margin: 0; text-shadow: 2px 2px 0px rgba(255,255,255,0.8); letter-spacing: -1px; }
+        .site-subtitle { font-size: 0.8em; color: #888; margin-top: 5px; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* --- NAVEGACIÓN --- */
+        .nav-buttons {
+            display: flex; justify-content: center; gap: 8px; padding: 15px 10px;
+            background: rgba(255,255,255,0.2); overflow-x: auto;
+        }
+        .nav-buttons::-webkit-scrollbar { display: none; } 
+
+        .nav-btn {
+            background: rgba(255,255,255,0.5); border: 1px solid white;
+            font-size: 1.4rem; cursor: pointer; padding: 10px;
+            border-radius: 18px; transition: all 0.3s; color: #666;
+            min-width: 45px;
+        }
+        .nav-btn:hover { background: white; transform: translateY(-3px); }
+        .nav-btn.active { background: white; border-color: #ff6b6b; transform: scale(1.1); box-shadow: 0 5px 15px rgba(255, 107, 107, 0.2); }
+
+        /* --- SECCIONES --- */
+        .content-area { flex: 1; overflow-y: auto; padding: 20px; position: relative; }
+        .content-area::-webkit-scrollbar { width: 0 !important; } 
+
+        .game-section { display: none; animation: fadeIn 0.5s ease-out; }
+        .game-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 { color: #ff6b6b; font-family: 'Fredoka', sans-serif; margin-top: 0; text-align: center; font-size: 1.8em;}
+        p { margin-bottom: 20px; line-height: 1.5; text-align: center; color: #666; }
+
+        button.action-btn {
+            display: block; width: 100%;
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+            color: white; border: none; padding: 14px; border-radius: 50px;
+            font-family: 'Fredoka', sans-serif; font-size: 1.1em;
+            cursor: pointer; margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button.action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 154, 158, 0.6); }
+        button.action-btn:active { transform: translateY(1px); }
+        button.action-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+        /* --- ESTILOS JUEGOS ORIGINALES --- */
+        /* Margarita */
+        .flower-container { position: relative; width: 200px; height: 200px; margin: 20px auto; }
+        .center-disk { position: absolute; width: 60px; height: 60px; background: radial-gradient(circle at 30% 30%, #ffd700, #ffa502); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .petal { position: absolute; width: 40px; height: 90px; background: linear-gradient(to bottom, #fff, #ffebee); border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 4px 8px rgba(0,0,0,0.05); border-radius: 50px; top: 50%; left: 50%; margin-left: -20px; margin-top: -90px; transform-origin: bottom center; cursor: pointer; transition: background 0.3s; z-index: 2; }
+        .petal:hover { background: #fff0f5; transform: scale(1.05) rotate(var(--rot)); }
+        .petal.falling { pointer-events: none; animation: fallDown 1s forwards ease-in; z-index: 10; }
+        @keyframes fallDown { 0% { transform: translateY(0) rotate(var(--rot)); opacity: 1; } 100% { transform: translateY(200px) rotate(calc(var(--rot) + 60deg)); opacity: 0; } }
+        .floating-text { position: absolute; width: 100%; top: 40%; left: 0; font-weight: bold; color: #ff6b6b; font-size: 3em; pointer-events: none; opacity: 0; z-index: 20; text-align: center; text-shadow: 0 0 10px rgba(255,255,255,0.9); }
+        .floating-text.animate { animation: floatUp 0.7s forwards ease-out; }
+        @keyframes floatUp { 0% { opacity: 0; transform: translateY(0) scale(0.5); } 30% { opacity: 1; transform: translateY(-40px) scale(1.2); } 100% { opacity: 0; transform: translateY(-80px) scale(1); } }
+        .final-result { font-size: 1.2em; color: #ff4757; font-weight: bold; margin-top: 20px; padding: 15px; border-radius: 15px; background: var(--glass-strong); text-align: center; display: none; animation: popIn 0.5s; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        @keyframes popIn { from {transform: scale(0.5); opacity:0;} to {transform: scale(1); opacity:1;} }
+
+        /* Calculadora */
+        input { width: 100%; box-sizing: border-box; padding: 15px; margin: 8px 0; border: 2px solid transparent; border-radius: 20px; font-family: 'Quicksand', sans-serif; text-align: center; font-size: 1.1em; background-color: var(--glass-strong); outline: none; transition: all 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.03); }
+        input:focus { border-color: #ff6b6b; background-color: white; transform: scale(1.02); }
+        .result-box { margin-top: 20px; min-height: 100px; padding: 10px; text-align: center; }
+
+        /* Péndulo */
+        .pendulum-wrapper { height: 160px; position: relative; margin: 30px auto; }
+        .pendulum-string { width: 3px; height: 120px; background: rgba(85, 85, 85, 0.4); margin: 0 auto; transform-origin: top center; animation: swing 1.5s infinite ease-in-out; }
+        .pendulum-ball { width: 35px; height: 35px; background: radial-gradient(circle at 30% 30%, #a29bfe, #6c5ce7); border-radius: 50%; position: absolute; bottom: -35px; left: -16px; box-shadow: 0 5px 15px rgba(108, 92, 231, 0.5); }
+        @keyframes swing { 0% { transform: rotate(35deg); } 50% { transform: rotate(-35deg); } 100% { transform: rotate(35deg); } }
+
+        /* Moneda */
+        .coin-stage { perspective: 800px; width: 140px; height: 140px; margin: 20px auto; }
+        .coin { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 3s ease-out; }
+        .coin-face { position: absolute; width: 100%; height: 100%; border-radius: 50%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; font-size: 2.5em; font-weight: bold; color: white; border: 6px solid rgba(255,255,255,0.5); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+        .face-si { background: #ffbe76; transform: rotateY(0deg); }
+        .face-no { background: #badc58; transform: rotateY(180deg); }
+        .philosophy-msg { margin-top: 20px; font-size: 0.95em; color: #555; background: var(--glass-strong); padding: 15px; border-radius: 15px; display: none; animation: fadeIn 1s; text-align: center; border-left: 4px solid #ffbe76; }
+
+        /* Chat */
+        .phone-screen { background: #fff; border: 1px solid #ddd; border-radius: 20px; height: 320px; width: 100%; margin: 0 auto; position: relative; overflow: hidden; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
+        .chat-header { background: rgba(255,255,255,0.9); padding: 8px; border-bottom: 1px solid #eee; font-size: 0.8em; color: #888; margin-bottom: 10px; border-radius: 10px; text-align: center; }
+        .bubble { max-width: 80%; padding: 12px 16px; border-radius: 18px; margin-bottom: 10px; font-size: 0.95em; position: relative; animation: popIn 0.3s; }
+        .bubble-me { background: #dcf8c6; align-self: flex-end; border-bottom-right-radius: 2px; display: none; }
+        .bubble-crush { background: #f0f2f5; align-self: flex-start; border-bottom-left-radius: 2px; display: none; }
+        .typing { font-style: italic; color: #aaa; font-size: 0.8em; align-self: flex-start; margin-left: 10px; display: none; margin-bottom: 10px;}
+        .dots span { animation: blink 1.4s infinite both; }
+        .dots span:nth-child(2) { animation-delay: 0.2s; }
+        .dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
+
+        /* --- TAROT ESTILIZADO --- */
+        .tarot-subnav { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .tarot-btn { background: var(--glass-strong); border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; color: #666; font-size: 0.9em; font-family: 'Fredoka', sans-serif; transition: all 0.3s; }
+        .tarot-btn:hover { background: white; }
+        .tarot-btn.active { background: #6c5ce7; color: white; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3); }
+        
+        .tarot-content { display: none; }
+        .tarot-content.active { display: block; animation: fadeIn 0.3s; }
+
+        .cards-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px auto; perspective: 1000px; }
+        .card-wrapper { aspect-ratio: 2/3; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.6s; }
+        .card-wrapper.flipped { transform: rotateY(180deg); }
+        .card-wrapper.disabled { opacity: 0.5; cursor: default; filter: grayscale(1); }
+        
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card-back { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); color: white; font-size: 1.5em; border: 2px solid rgba(255,255,255,0.3); background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px); }
+        .card-front { background: white; transform: rotateY(180deg); border: 1px solid #ddd; }
+        .card-front .emoji { font-size: 2em; margin-bottom: 5px; }
+        .card-front .name { font-size: 0.6em; color: #6c5ce7; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;}
+
+        .reading-result { margin-top: 20px; padding: 20px; background: var(--glass-strong); border-radius: 20px; display: none; text-align: left; font-size: 0.95em; border-left: 5px solid #6c5ce7; }
+        .reading-result h3 { color: #6c5ce7; margin-top: 0; margin-bottom: 10px; font-family: 'Fredoka', sans-serif;}
+        .reading-result.show { display: block; animation: fadeIn 0.5s; }
+        
+        /* Galería Compacta */
+        .cards-gallery { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 6px; 
+        }
+        .gallery-card { 
+            background: var(--glass-strong); 
+            padding: 5px; 
+            border-radius: 10px; 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 85px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+            transition: transform 0.2s; 
+        }
+        .gallery-card:hover { transform: translateY(-2px); background: white; }
+        
+        .g-emoji { font-size: 1.8em; margin-bottom: 2px; line-height: 1; }
+        .g-name { font-size: 0.65em; font-weight: bold; color: #6c5ce7; margin-bottom: 3px; line-height: 1.1; }
+        .g-vibe { font-size: 0.55em; color: #666; line-height: 1.1; }
+
+        .kofi-container { border-radius: 20px; overflow: hidden; margin-top: 10px; border: 2px dashed #ffb7b2; }
+    </style>
+</head>
+<body>
+
+<!-- Fondo Animado -->
+<div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+</div>
+
+<div class="container">
+    <div class="main-header">
+        <h1 class="site-title">✨ cositas.space</h1>
+        <div class="site-subtitle">manifesting & vibes</div>
+    </div>
+
+    <!-- Navegación -->
+    <div class="nav-buttons">
+        <button class="nav-btn active" onclick="showGame('margarita')">🌼</button>
+        <button class="nav-btn" onclick="showGame('amor')">💘</button>
+        <button class="nav-btn" onclick="showGame('pendulo')">🔮</button>
+        <button class="nav-btn" onclick="showGame('moneda')">🪙</button>
+        <button class="nav-btn" onclick="showGame('chat')">💬</button>
+        <button class="nav-btn" onclick="showGame('tarot')">🎴</button>
+        <button class="nav-btn" onclick="showGame('tip')" style="color: #ff6b6b;">☕</button>
+    </div>
+
+    <div class="content-area">
+        
+        <!-- JUEGOS ORIGINALES MANTENIDOS -->
+        <div id="margarita" class="game-section active">
+            <h2>La Margarita</h2>
+            <p>Arranca pétalos para saber tu destino...</p>
+            <div class="flower-container" id="flower-garden">
+                <div class="center-disk"></div>
+                <div id="float-msg" class="floating-text"></div>
+            </div>
+            <div id="final-msg" class="final-result"></div>
+            <button class="action-btn" onclick="initMargarita()">Nueva Flor</button>
+        </div>
+
+        <div id="amor" class="game-section">
+            <h2>Calculadora del Amor</h2>
+            <p>Escribe Nombres y Apellidos</p>
+            <input type="text" id="name1" placeholder="Tu Nombre y Apellidos">
+            <input type="text" id="name2" placeholder="Su Nombre y Apellidos">
+            <button class="action-btn" onclick="calcularAmor()">Calcular Compatibilidad</button>
+            <div id="amor-result" class="result-box"></div>
+        </div>
+
+        <div id="pendulo" class="game-section">
+            <h2>El Péndulo</h2>
+            <p>Concéntrate en una pregunta de SÍ o NO</p>
+            <div class="pendulum-wrapper">
+                <div id="p-string" class="pendulum-string"><div class="pendulum-ball"></div></div>
+            </div>
+            <button class="action-btn" onclick="pararPendulo()">¡Preguntar!</button>
+            <div id="pendulo-result" style="margin-top:20px; font-weight:bold; color:#6c5ce7; font-size:1.5em; min-height:40px; text-align:center;"></div>
+        </div>
+
+        <div id="moneda" class="game-section">
+            <h2>Moneda de la Verdad</h2>
+            <p>¿Indeciso/a? Deja que la moneda decida...</p>
+            <div class="coin-stage">
+                <div id="the-coin" class="coin">
+                    <div class="coin-face face-si">SÍ</div>
+                    <div class="coin-face face-no">NO</div>
+                </div>
+            </div>
+            <button id="btn-flip" class="action-btn" onclick="lanzarMoneda()">Lanzar Moneda</button>
+            <div id="moneda-msg" class="philosophy-msg"></div>
+        </div>
+
+        <div id="chat" class="game-section">
+            <h2>El Chat Mágico</h2>
+            <p>Envía un mensaje y ve qué contesta el destino...</p>
+            <div class="phone-screen">
+                <div class="chat-header">Crush ❤️ - En línea</div>
+                <div id="msg-me" class="bubble bubble-me">Holaaa! 👋</div>
+                <div id="typing-indicator" class="typing">Escribiendo<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
+                <div id="msg-crush" class="bubble bubble-crush"></div>
+            </div>
+            <button id="btn-chat" class="action-btn" onclick="simularChat()">Enviar "Hola"</button>
+        </div>
+
+        <!-- TAROT ACTUALIZADO CON DB DE SABIOS -->
+        <div id="tarot" class="game-section">
+            <h2>Tarot Cositas</h2>
+            
+            <div class="tarot-subnav">
+                <button class="tarot-btn active" onclick="verTarot('semanal')">Semanal</button>
+                <button class="tarot-btn" onclick="verTarot('sabio')">Sabio</button>
+                <button class="tarot-btn" onclick="verTarot('galeria')">Cartas</button>
+            </div>
+
+            <div id="view-semanal" class="tarot-content active">
+                <p>Elige 3 cartas para ver tu semana:</p>
+                <div class="cards-container" id="cards-semanal"></div>
+                <div id="result-semanal" class="reading-result"></div>
+                <button class="action-btn" id="btn-semanal" onclick="resetTarot('semanal')" style="display:none; margin-top:10px;">Nueva Tirada</button>
+            </div>
+
+            <div id="view-sabio" class="tarot-content">
+                <p>El Universo tiene un mensaje único para ti:</p>
+                <div class="cards-container" id="cards-sabio"></div>
+                <div id="result-sabio" class="reading-result" style="border: 2px dashed #6c5ce7; background:rgba(255,255,255,0.8);"></div>
+                <button class="action-btn" id="btn-sabio" onclick="resetTarot('sabio')" style="display:none; margin-top:10px;">Otro Consejo</button>
+            </div>
+
+            <div id="view-galeria" class="tarot-content">
+                <div class="cards-gallery" id="gallery-container"></div>
+            </div>
+        </div>
+
+        <div id="tip" class="game-section">
+            <h2>Zona VIP ✨</h2>
+            <p>¿Te han gustado los juegos?<br>¡Invítame a un batido para crear más!</p>
+            <div class="kofi-container">
+                <iframe id='kofiframe' src='https://ko-fi.com/mikimi/?hidefeed=true&widget=true&embed=true&preview=true' style='border:none;width:100%;padding:4px;background:#f9f9f9;' height='500' title='mikimi'></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- EFECTO MOUSE ---
+    document.addEventListener('mousemove', function(e){
+        if(Math.random() < 0.85) return;
+        const p = document.createElement('div');
+        p.classList.add('cursor-trail');
+        p.style.left = e.pageX + 'px';
+        p.style.top = e.pageY + 'px';
+        p.style.background = `hsl(${Math.random() * 360}, 100%, 80%)`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1000);
+    });
+
+    // --- NAVEGACIÓN ---
+    function showGame(id) {
+        document.querySelectorAll('.game-section').forEach(d => d.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        const btnIndex = ['margarita','amor','pendulo','moneda','chat','tarot','tip'].indexOf(id);
+        if(btnIndex >= 0) document.querySelectorAll('.nav-btn')[btnIndex].classList.add('active');
+    }
+
+    // --- JUEGOS ORIGINALES (Lógica Intacta) ---
+    // 1. Margarita
+    const frasesPositivas = ["¡Te quiere con locura! 😍", "Eres su crush secreto 🤫", "Te invitará a salir pronto 🎬", "Sueña contigo cada noche 🌙", "¡Amor Verdadero! ❤️"];
+    const frasesNegativas = ["Solo te ve como amiga/o 😢", "Le gusta otra persona 💔", "Mejor olvídalo... 🌬️", "Te ve como hermana/o 😬", "No es para ti 🚫"];
+    const corazonesFlotantes = ["💖", "✨❤️✨", "💕", "💓✨", "💝", "💗"];
+    let petalosRestantes = 12, resMargarita = true;
+
+    function initMargarita() {
+        const garden = document.getElementById('flower-garden');
+        const finalMsg = document.getElementById('final-msg');
+        document.querySelectorAll('.petal').forEach(p => p.remove());
+        finalMsg.style.display = 'none'; finalMsg.innerHTML = '';
+        resMargarita = Math.random() < 0.5; 
+        petalosRestantes = 12;
+        const angleStep = 360 / 12;
+        for (let i = 0; i < 12; i++) {
+            const petal = document.createElement('div');
+            petal.classList.add('petal');
+            const rotacion = i * angleStep;
+            petal.style.transform = `rotate(${rotacion}deg)`;
+            petal.style.setProperty('--rot', `${rotacion}deg`);
+            petal.onclick = function() { quitarPetalo(this); };
+            garden.appendChild(petal);
+        }
+    }
+    function quitarPetalo(el) {
+        if(el.classList.contains('falling')) return;
+        el.classList.add('falling');
+        petalosRestantes--;
+        const floatMsg = document.getElementById('float-msg');
+        if (petalosRestantes > 0) {
+            floatMsg.innerText = corazonesFlotantes[Math.floor(Math.random() * corazonesFlotantes.length)];
+            floatMsg.classList.remove('animate'); void floatMsg.offsetWidth; floatMsg.classList.add('animate');
+        } else {
+            floatMsg.innerText = "";
+            const frases = resMargarita ? frasesPositivas : frasesNegativas;
+            document.getElementById('final-msg').style.display = 'block';
+            document.getElementById('final-msg').innerHTML = frases[Math.floor(Math.random() * frases.length)];
+        }
+    }
+    initMargarita();
+
+    // 2. Calculadora
+    function calcularAmor() {
+        const n1 = document.getElementById('name1').value.trim().toLowerCase();
+        const n2 = document.getElementById('name2').value.trim().toLowerCase();
+        const r = document.getElementById('amor-result');
+        if(n1.length < 3 || n2.length < 3) { r.innerHTML = "⚠️ Faltan apellidos"; return; }
+        let suma = 0; const total = n1 + n2;
+        for(let i=0; i<total.length; i++) suma += total.charCodeAt(i);
+        const p = (suma * 7) % 101;
+        let t = "", txt = "", c = "";
+        if (p <= 20) { t="❄️ Frialdad"; txt="Polos opuestos."; c="#a0a0a0"; }
+        else if (p <= 45) { t="🤝 Amigos"; txt="Cariño de amistad."; c="#ff9f43"; }
+        else if (p <= 75) { t="💓 Química"; txt="Puede surgir magia."; c="#feca57"; }
+        else if (p <= 95) { t="💘 Gran Amor"; txt="Compatibilidad alta."; c="#ff6b6b"; }
+        else { t="🔥 ALMAS GEMELAS"; txt="100% Definitivo."; c="#ff4757"; }
+        r.style.color = c;
+        r.innerHTML = `<div style="font-size:3em">${p}%</div><b>${t}</b><br><small>${txt}</small>`;
+    }
+
+    // 3. Péndulo
+    let pAnim = true;
+    function pararPendulo() {
+        const s = document.getElementById('p-string'), btn = document.querySelector('#pendulo .action-btn'), res = document.getElementById('pendulo-result');
+        if(pAnim) {
+            s.style.animationPlayState = 'paused'; pAnim = false; btn.innerText = "Reiniciar";
+            const ans = ["SÍ", "NO", "Tal vez", "Pregunta mañana", "Seguro", "Imposible"];
+            res.innerText = ans[Math.floor(Math.random() * ans.length)];
+        } else {
+            s.style.animationPlayState = 'running'; pAnim = true; btn.innerText = "¡Preguntar!"; res.innerText = "";
+        }
+    }
+
+    // 4. Moneda
+    let anguloMoneda = 0; 
+    function lanzarMoneda() {
+        const coin = document.getElementById('the-coin'), btn = document.getElementById('btn-flip'), msg = document.getElementById('moneda-msg');
+        msg.style.display = 'none'; btn.disabled = true;
+        const esCara = Math.random() < 0.5;
+        anguloMoneda += 1800; 
+        if ((esCara && anguloMoneda % 360 !== 0) || (!esCara && anguloMoneda % 360 === 0)) anguloMoneda += 180;
+        coin.style.transform = `rotateY(${anguloMoneda}deg)`;
+        setTimeout(() => {
+            btn.disabled = false; btn.innerText = "Lanzar otra vez";
+            msg.innerHTML = esCara ? `<strong>¡SÍ! 🌟</strong><br>Si dudas, querías un NO.` : `<strong>NO... 🌑</strong><br>Si te entristece, querías un SÍ.`;
+            msg.style.display = 'block';
+        }, 3000);
+    }
+
+    // 5. Chat
+    function simularChat() {
+        const btn = document.getElementById('btn-chat'), me = document.getElementById('msg-me'), crush = document.getElementById('msg-crush'), typing = document.getElementById('typing-indicator');
+        me.style.display = 'none'; crush.style.display = 'none'; typing.style.display = 'none'; btn.disabled = true;
+        me.style.display = 'block';
+        setTimeout(() => { typing.style.display = 'block'; }, 1000);
+        setTimeout(() => {
+            typing.style.display = 'none'; crush.style.display = 'block'; btn.disabled = false;
+            const resps = ["¡Hola! Pensaba en ti... 😍", "Visto ✔✔", "¿Nos vemos? 🥪", "¿Quién eres? 🤡", "Estoy salvando el mundo 🦸‍♂️", "Solo amigos... 😬", "¡Me encantas! ❤️"];
+            const r = resps[Math.floor(Math.random()*resps.length)];
+            crush.style.color = r.includes("Visto") ? "#aaa" : "#555";
+            crush.innerText = r;
+        }, 3500);
+    }
+
+    // --- TAROT & DB MASIVA ---
+    const TAROT_CARTAS = [
+        { id:1, emoji:"⭐", nombre:"La Estrella", frases:{tu_vibe:"Brillas con luz propia.", impulso:"claridad mental te guiará", destino:"un deseo se cumplirá."} },
+        { id:2, emoji:"❤️", nombre:"El Amor", frases:{tu_vibe:"Tu corazón vibra alto.", impulso:"el cariño será tu motor", destino:"encontrarás armonía."} },
+        { id:3, emoji:"🎯", nombre:"El Éxito", frases:{tu_vibe:"Estás en 'modo jefe'.", impulso:"tu esfuerzo dará frutos", destino:"lograrás esa meta imposible."} },
+        { id:4, emoji:"🌈", nombre:"La Alegría", frases:{tu_vibe:"Desprendes buen rollo.", impulso:"el humor desbloqueará todo", destino:"días llenos de sonrisas."} },
+        { id:5, emoji:"🎨", nombre:"Creatividad", frases:{tu_vibe:"Tu mente vuela.", impulso:"pensar diferente es la clave", destino:"crearás algo único."} },
+        { id:6, emoji:"🚀", nombre:"Aventura", frases:{tu_vibe:"Necesitas salir de la rutina.", impulso:"saltar al vacío te cambiará", destino:"descubrirás un mundo nuevo."} },
+        { id:7, emoji:"🌟", nombre:"La Suerte", frases:{tu_vibe:"Tienes el guapo subido.", impulso:"una coincidencia ayudará", destino:"un regalo del destino."} },
+        { id:8, emoji:"🎪", nombre:"Diversión", frases:{tu_vibe:"Necesitas fiesta.", impulso:"relajarte con amigos es vital", destino:"celebrarás un momento épico."} },
+        { id:9, emoji:"🏆", nombre:"Triunfo", frases:{tu_vibe:"Seguridad aplastante.", impulso:"tomar el liderazgo es vital", destino:"recibirás el aplauso merecido."} },
+        { id:10, emoji:"💫", nombre:"Magia", frases:{tu_vibe:"Hay misterio en el aire.", impulso:"confiar en tu intuición", destino:"una transformación mágica."} },
+        { id:11, emoji:"🎁", nombre:"Sorpresa", frases:{tu_vibe:"Estás a la expectativa.", impulso:"aceptar lo inesperado", destino:"una noticia cambiará tus planes."} },
+        { id:12, emoji:"🌺", nombre:"Amistad", frases:{tu_vibe:"Valoras la lealtad.", impulso:"apoyarte en tu mejor amigo", destino:"un vínculo para siempre."} }
+    ];
+
+    // DB CONSEJOS SABIOS (220 COMBINACIONES)
+    const CONSEJOS_SABIOS_COMPLETO = {
+        "1-2-3": { titulo: "El Camino del Amor Destinado", texto: "Los sabios observan en tus cartas una alineación perfecta: tus sueños (⭐) se entrelazan con el amor (❤️) y el éxito (🎯). Este es un momento único donde tu corazón y tus metas caminan juntos. No temas seguir tus sentimientos, porque el universo conspira para que triunfes en el amor." },
+        "1-2-4": { titulo: "La Estrella Amorosa de la Felicidad", texto: "Los sabios ven un futuro radiante donde la esperanza (⭐), el amor (❤️) y la alegría (🌈) se unen. Tu optimismo y corazón abierto atraerán momentos hermosos. Alguien especial entrará en tu vida trayendo risas y días llenos de luz." },
+        "1-2-5": { titulo: "El Romance Creativo del Soñador", texto: "Tus sueños (⭐), el amor (❤️) y tu creatividad (🎨) forman una trinidad mágica. Este es el momento perfecto para expresar tus sentimientos de forma original. Escribe, dibuja o crea algo especial para esa persona. Tu autenticidad conquistará corazones." },
+        "1-2-6": { titulo: "La Aventura del Corazón Soñador", texto: "Los sabios ven esperanza (⭐), amor (❤️) y aventura (🚀). No te conformes con lo ordinario en el amor. El universo te empuja a ser valiente, a arriesgarte. Un viaje, una actividad diferente o atreverte a hablar con quien te gusta abrirá puertas mágicas." },
+        "1-2-7": { titulo: "El Destino Amoroso Perfecto", texto: "Tres fuerzas cósmicas se alinean: la estrella (⭐), el amor (❤️) y la suerte (🌟). Los sabios proclaman que el destino mismo está trabajando a tu favor en el amor. Las coincidencias que parecen casuales son en realidad el universo conectando los hilos correctos." },
+        "1-2-8": { titulo: "El Amor que Celebra la Vida", texto: "Sueños (⭐), amor (❤️) y diversión (🎪) crean la fórmula perfecta de la felicidad. Los sabios revelan que el amor verdadero no debe ser complicado. La persona correcta para ti es aquella con quien puedes reír, jugar y soñar. Busca a alguien que haga tu vida divertida." },
+        "1-2-9": { titulo: "El Triunfo del Amor Soñado", texto: "Esperanza (⭐), amor (❤️) y triunfo (🏆) predicen una victoria en el corazón. Los sabios te felicitan porque no solo encontrarás amor, sino que será un amor del que estarás orgulloso. Tu pareja será tu mayor logro y juntos conquistarán el mundo." },
+        "1-2-10": { titulo: "El Milagro del Amor Mágico", texto: "Estrella (⭐), amor (❤️) y magia (💫): los sabios susurran que estás a punto de experimentar algo extraordinario. No será un amor común, sino una conexión que desafía toda explicación lógica. Prepárate para sincronicidades asombrosas y una conexión destinada." },
+        "1-2-11": { titulo: "La Sorpresa del Amor Destinado", texto: "Sueños (⭐), amor (❤️) y sorpresa (🎁) se combinan mágicamente. Los sabios te advierten: el amor llegará cuando menos lo esperes. Esa persona que nunca imaginaste o ese momento que parecía imposible, de repente se materializará." },
+        "1-2-12": { titulo: "El Amor que Nace de la Amistad", texto: "Esperanza (⭐), amor (❤️) y amistad (🌺) revelan un secreto: tu verdadero amor podría estar disfrazado de amistad. Los sabios sugieren mirar más allá de lo obvio. Alguien que ya está en tu vida podría ser exactamente lo que buscas." },
+        "1-3-4": { titulo: "El Éxito Alegre del Soñador", texto: "Estrella (⭐), éxito (🎯) y alegría (🌈) forman tu camino. Los sabios celebran que tus logros no vendrán con sufrimiento, sino con sonrisas. El éxito que te espera te hará feliz de verdad, no solo exitoso en papel." },
+        "1-3-5": { titulo: "El Triunfo del Soñador Creativo", texto: "Estrella (⭐), éxito (🎯) y creatividad (🎨) predicen logros extraordinarios. Tus ideas originales te llevarán lejos. Es momento de presentar ese proyecto o compartir tu arte. El reconocimiento que buscas está cerca." },
+        "1-3-6": { titulo: "La Aventura hacia el Éxito", texto: "Sueños (⭐), éxito (🎯) y aventura (🚀) te llaman a salir de tu zona de confort. Tu mayor logro no está en el camino seguro. Atrévete a explorar y arriesgarte. Tu estrella brilla más allá de lo familiar." },
+        "1-3-7": { titulo: "El Destino del Soñador Afortunado", texto: "Estrella (⭐), éxito (🎯) y suerte (🌟): todo se está alineando perfectamente. Tu momento ha llegado. Las oportunidades aparecerán y las puertas se abrirán. Este es tu tiempo de brillar." },
+        "1-3-8": { titulo: "El Éxito que se Disfruta", texto: "Esperanza (⭐), éxito (🎯) y diversión (🎪) te recuerdan algo importante: no esperes al final para celebrar. Disfruta el proceso. El camino hacia tus sueños debe ser tan divertido como la meta misma." },
+        "1-3-9": { titulo: "La Gloria del Soñador Victorioso", texto: "Estrella (⭐), éxito (🎯) y triunfo (🏆): triple confirmación de tu victoria. Los sabios adelantan el final de la historia: ganarás. Tus sueños se cumplirán, tus metas se alcanzarán. Sigue avanzando con confianza." },
+        "1-3-10": { titulo: "El Milagro del Éxito Imposible", texto: "Sueños (⭐), éxito (🎯) y magia (💫) se unen para lo extraordinario. Lograrás algo que otros consideran imposible. Tu fe inquebrantable creará resultados que parecerán milagrosos. La magia está de tu lado." },
+        "1-3-11": { titulo: "El Éxito Inesperado", texto: "Estrella (⭐), éxito (🎯) y sorpresa (🎁): tu gran logro llegará de forma inesperada. No será como planeaste, sino mejor. Una oportunidad surgirá de la nada o un talento oculto se revelará." },
+        "1-3-12": { titulo: "El Éxito Compartido con Amigos", texto: "Sueños (⭐), éxito (🎯) y amistad (🌺) revelan una verdad: no llegarás solo a la cima. Tus amigos son parte esencial de tu éxito. Colabora y apóyate en ellos. Los mejores logros se celebran en compañía." },
+        "1-4-5": { titulo: "El Soñador Alegre y Creativo", texto: "Estrella (⭐), alegría (🌈) y creatividad (🎨) pintan tu futuro con colores brillantes. Eres alguien que ve belleza en todo. Tu optimismo y tu imaginación son tus superpoderes. Úsalos para hacer realidad tus visiones." },
+        "1-4-6": { titulo: "La Aventura Alegre del Optimista", texto: "Esperanza (⭐), alegría (🌈) y aventura (🚀): explora el mundo con una sonrisa. Tu actitud positiva convertirá cada experiencia en un recuerdo precioso. La vida es una aventura y tú naciste para disfrutarla." },
+        "1-4-7": { titulo: "La Suerte del Soñador Feliz", texto: "Estrella (⭐), alegría (🌈) y suerte (🌟) crean un aura dorada. Tu positividad atrae bendiciones. Las personas felices tienen más suerte porque su energía crea oportunidades. Sigue sonriendo." },
+        "1-4-8": { titulo: "El Festival del Alma Soñadora", texto: "Sueños (⭐), alegría (🌈) y diversión (🎪): tu vida debe ser una celebración constante. No esperes ocasiones especiales. Cada día puede ser una fiesta si tú lo decides. Contagia tu alegría al mundo." },
+        "1-4-9": { titulo: "El Triunfo del Espíritu Alegre", texto: "Estrella (⭐), alegría (🌈) y triunfo (🏆): ganarás con una sonrisa. Tu actitud positiva es tu mayor ventaja. Mientras otros luchan amargamente, tú conquistarás tus metas con gracia y buen humor." },
+        "1-4-10": { titulo: "La Magia de la Alegría Infinita", texto: "Esperanza (⭐), alegría (🌈) y magia (💫) crean un hechizo de felicidad. Tu capacidad de mantener el optimismo es un poder místico. Tu alegría no depende de lo externo, y eso te hace imparable." },
+        "1-4-11": { titulo: "La Sorpresa que Alegra el Alma", texto: "Sueños (⭐), alegría (🌈) y sorpresa (🎁): algo maravilloso está a punto de suceder. Una noticia inesperada o un regalo del destino que no viste venir. Prepárate para sonreír más que nunca." },
+        "1-4-12": { titulo: "La Alegría de la Amistad Verdadera", texto: "Estrella (⭐), alegría (🌈) y amistad (🌺): la verdadera riqueza está en las risas compartidas. Tus amigos son tu tesoro. Cultiva esas relaciones porque son las que hacen que la vida valga la pena." },
+        "1-5-6": { titulo: "El Explorador Creativo de Sueños", texto: "Estrella (⭐), creatividad (🎨) y aventura (🚀): los sabios celebran tu espíritu innovador. No solo imaginas mundos nuevos, te atreves a explorarlos. Tu originalidad y valentía te llevará a crear cosas únicas." },
+        "1-5-7": { titulo: "La Suerte del Artista Soñador", texto: "Esperanza (⭐), creatividad (🎨) y suerte (🌟): tu talento será reconocido. Esa idea o proyecto llegará a las personas correctas en el momento perfecto. El universo da visibilidad a tu genio creativo." },
+        "1-5-8": { titulo: "El Arte como Celebración", texto: "Sueños (⭐), creatividad (🎨) y diversión (🎪): crear debe ser un juego. No te tomes demasiado en serio. Experimenta y disfruta el proceso. Tu mejor arte surgirá cuando dejes de buscar la perfección." },
+        "1-5-9": { titulo: "El Triunfo del Genio Creativo", texto: "Estrella (⭐), creatividad (🎨) y triunfo (🏆): tu originalidad será tu mayor victoria. En un mundo de copias, tu autenticidad destaca. Sé radicalmente tú mismo. Tu estilo único es lo que el mundo necesita." },
+        "1-5-10": { titulo: "La Magia del Creador Visionario", texto: "Esperanza (⭐), creatividad (🎨) y magia (💫): posees el poder de materializar visiones. Lo que imaginas puede ser realidad. Tu creatividad es un canal para manifestar nuevas posibilidades. Sigues dando forma al futuro." },
+        "1-5-11": { titulo: "La Inspiración Inesperada", texto: "Sueños (⭐), creatividad (🎨) y sorpresa (🎁): una idea brillante llegará cuando menos la esperes. Ese momento 'eureka' cambiará todo. Mantén un cuaderno cerca, la inspiración divina te visitará pronto." },
+        "1-5-12": { titulo: "El Arte de la Colaboración", texto: "Estrella (⭐), creatividad (🎨) y amistad (🌺): tus mejores creaciones vendrán del equipo. Colabora con otros, combina talentos. La sinergia de mentes creativas produce magia que una sola persona no lograría." },
+        "1-6-7": { titulo: "El Viaje del Soñador Afortunado", texto: "Estrella (⭐), aventura (🚀) y suerte (🌟): lánzate al vacío. Ese viaje o cambio que contemplas, hazlo ahora. La fortuna favorece a los valientes y estás bajo una estrella de suerte. Atrévete a moverte." },
+        "1-6-8": { titulo: "La Aventura como Diversión Pura", texto: "Esperanza (⭐), aventura (🚀) y diversión (🎪): la vida es para vivirla intensamente. No pospongas experiencias. Los mejores recuerdos se crean cuando sales de la rutina y te atreves a experimentar con alegría." },
+        "1-6-9": { titulo: "El Triunfo del Explorador Valiente", texto: "Sueños (⭐), aventura (🚀) y triunfo (🏆): tu victoria vendrá de atreverte a lo desconocido. No ganarás jugando seguro. Tu mayor logro está en territorio inexplorado. Estás destinado a conquistar fronteras." },
+        "1-6-10": { titulo: "La Odisea Mágica del Soñador", texto: "Estrella (⭐), aventura (🚀) y magia (💫): estás a punto de vivir una experiencia transformadora. Un viaje o cambio que será una metamorfosis personal. Prepárate para convertirte en una versión mejorada de ti mismo." },
+        "1-6-11": { titulo: "El Giro Inesperado del Destino", texto: "Esperanza (⭐), aventura (🚀) y sorpresa (🎁): un plot twist en tu historia. Tu vida tomará un giro inesperado, y aunque no lo veas venir, será lo que necesitabas. Confía en los cambios repentinos." },
+        "1-6-12": { titulo: "La Aventura Compartida con Amigos", texto: "Sueños (⭐), aventura (🚀) y amistad (🌺): las mejores aventuras se viven con amigos. Planea ese viaje grupal o esa experiencia. Los lazos que se forjan en aventuras compartidas duran para siempre." },
+        "1-7-8": { titulo: "La Fiesta del Alma Afortunada", texto: "Estrella (⭐), suerte (🌟) y diversión (🎪): este es tu momento de celebrar. La fortuna te sonríe. Disfruta este periodo de buena racha y comparte tu energía. Tu vibra alta atrae más bendiciones." },
+        "1-7-9": { titulo: "El Destino del Campeón Estelar", texto: "Esperanza (⭐), suerte (🌟) y triunfo (🏆): triple confirmación. Tienes el talento, la fortuna y el momento. Todo se alinea para tu victoria. Es tu tiempo de brillar, no lo desperdicies." },
+        "1-7-10": { titulo: "El Milagro del Destino Mágico", texto: "Estrella (⭐), suerte (🌟) y magia (💫): las fuerzas del cosmos trabajan para ti. Tus sueños son posibles y probables. Lo imposible se vuelve realidad. Pide deseos con confianza, el universo escucha." },
+        "1-7-11": { titulo: "El Regalo Estelar del Destino", texto: "Sueños (⭐), suerte (🌟) y sorpresa (🎁): el universo prepara algo especial. Un regalo del destino, una bendición disfrazada o una oportunidad dorada inesperada. La fortuna toca a tu puerta." },
+        "1-7-12": { titulo: "La Suerte de Tener Buenos Amigos", texto: "Estrella (⭐), suerte (🌟) y amistad (🌺): tu mayor fortuna son las personas que te rodean. Tus amigos son tu tesoro y tu red de seguridad. Valóralos, no todos tienen esa suerte." },
+        "1-8-9": { titulo: "El Triunfo que se Celebra a lo Grande", texto: "Esperanza (⭐), diversión (🎪) y triunfo (🏆): cuando ganes, celebra como nunca. Tu victoria merece una fiesta. No seas modesto. Grita tu éxito y disfruta tu merecido reconocimiento." },
+        "1-8-10": { titulo: "La Magia de Disfrutar el Camino", texto: "Sueños (⭐), diversión (🎪) y magia (💫): la verdadera magia está en disfrutar el camino. Convierte tu búsqueda en una aventura. Cuando disfrutas el proceso, el éxito llega fácil y la victoria sabe mejor." },
+        "1-8-11": { titulo: "La Sorpresa que Alegra el Espíritu", texto: "Estrella (⭐), diversión (🎪) y sorpresa (🎁): una invitación inesperada o celebración improvisada alegrará tu semana. Di sí a las oportunidades de diversión espontánea que aparezcan." },
+        "1-8-12": { titulo: "La Celebración de la Amistad", texto: "Esperanza (⭐), diversión (🎪) y amistad (🌺): organiza ese encuentro con amigos. Esa salida o noche de risas que necesitan. La vida es mejor compartida. Crea recuerdos felices con tu tribu." },
+        "1-9-10": { titulo: "El Triunfo Místico del Soñador", texto: "Estrella (⭐), triunfo (🏆) y magia (💫): tu victoria será legendaria. No será un éxito común, sino algo que la gente recordará. Tu logro tendrá un toque mágico que inspirará a otros. Harás historia." },
+        "1-9-11": { titulo: "El Premio Inesperado del Destino", texto: "Sueños (⭐), triunfo (🏆) y sorpresa (🎁): ganarás algo que ni sabías que competías. Un reconocimiento o premio sorpresa. El universo te recompensará cuando menos lo esperes." },
+        "1-9-12": { titulo: "La Victoria del Equipo Soñador", texto: "Estrella (⭐), triunfo (🏆) y amistad (🌺): tu mayor victoria será colectiva. Ganarás con tu equipo y amigos. El triunfo compartido es más dulce porque se multiplica con quienes amas." },
+        "1-10-11": { titulo: "El Milagro de lo Imposible", texto: "Estrella (⭐), magia (💫) y sorpresa (🎁): presenciarás lo imposible volverse posible. Algo fuera de alcance se manifestará. Los milagros son reales y vivirás uno. Mantén tu fe." },
+        "1-10-12": { titulo: "La Magia de la Conexión Verdadera", texto: "Sueños (⭐), magia (💫) y amistad (🌺): hay algo místico en tus amistades. No es casualidad que estén en tu vida. Existe una conexión de almas y un propósito compartido." },
+        "1-11-12": { titulo: "El Amigo Inesperado del Destino", texto: "Estrella (⭐), sorpresa (🎁) y amistad (🌺): conocerás a alguien importante inesperadamente. Una nueva amistad cambiará tu perspectiva y te apoyará en momentos clave. Estate abierto." },
+        "2-3-4": { titulo: "El Amor que Triunfa en la Alegría", texto: "Amor (❤️), éxito (🎯) y alegría (🌈): encontrarás amor y felicidad. Tu relación será fuente de éxito y risas. El amor verdadero se siente ligero, no pesado." },
+        "2-3-5": { titulo: "El Romance del Artista Exitoso", texto: "Amor (❤️), éxito (🎯) y creatividad (🎨): tu vida amorosa y creativa están conectadas. Tu pareja inspirará tu arte, o tu talento atraerá amor. La pasión romántica y creativa se alimentan." },
+        "2-3-6": { titulo: "La Aventura Amorosa Exitosa", texto: "Amor (❤️), éxito (🎯) y aventura (🚀): sal de tu zona de confort en el amor. Atrévete a conocer gente nueva y explorar. El éxito en el amor favorece a los audaces." },
+        "2-3-7": { titulo: "El Amor Afortunado del Triunfador", texto: "Amor (❤️), éxito (🎯) y suerte (🌟): todo se alinea. Tendrás éxito en el amor y metas personales. La persona correcta llegará en tu mejor momento. Tu buena racha es total." },
+        "2-3-8": { titulo: "El Romance que se Disfruta", texto: "Amor (❤️), éxito (🎯) y diversión (🎪): el amor debe ser divertido. No busques dramas. La persona correcta es con quien puedes ser exitoso y pasarlo increíble. El amor sano ríe." },
+        "2-3-9": { titulo: "El Triunfo Total del Corazón", texto: "Amor (❤️), éxito (🎯) y triunfo (🏆): triple victoria. Ganarás en todos los frentes: amor, proyectos y reconocimiento. Es tu momento dorado donde todo sale bien." },
+        "2-3-10": { titulo: "La Magia del Amor que Transforma", texto: "Amor (❤️), éxito (🎯) y magia (💫): el amor que llega cambiará tu vida. Encontrarás romance, motivación e inspiración. El amor verdadero nos transforma para mejor." },
+        "2-3-11": { titulo: "El Éxito Amoroso Inesperado", texto: "Amor (❤️), éxito (🎯) y sorpresa (🎁): el amor llegará cuando te enfoques en otras cosas. Construyendo tu éxito, esa persona aparecerá. Las mejores cosas llegan sin perseguirlas." },
+        "2-3-12": { titulo: "El Éxito del Amor entre Amigos", texto: "Amor (❤️), éxito (🎯) y amistad (🌺): tu mejor relación será también una gran amistad. Busca un cómplice y compañero de equipo. El amor con amistad genuina perdura." },
+        "2-4-5": { titulo: "El Romance Alegre del Artista", texto: "Amor (❤️), alegría (🌈) y creatividad (🎨): celebran tu espíritu romántico. Tu forma de amar es única y poética. Expresarás amor creativamente. Tu romanticismo es tu poder." },
+        "2-4-6": { titulo: "La Aventura Amorosa Feliz", texto: "Amor (❤️), alegría (🌈) y aventura (🚀): vive el amor como una aventura. Exploren, vivan experiencias, creen recuerdos. El amor se fortalece compartiendo aventuras y risas." },
+        "2-4-7": { titulo: "La Suerte del Corazón Alegre", texto: "Amor (❤️), alegría (🌈) y suerte (🌟): tu actitud positiva es magnética. Las personas felices atraen mejores parejas. Tu sonrisa es irresistible. Sé tú mismo y el amor llegará." },
+        "2-4-8": { titulo: "El Festival del Amor Divertido", texto: "Amor (❤️), alegría (🌈) y diversión (🎪): el mejor indicador es la risa. Busca a alguien con quien hacer el tonto y reír hasta que duela. El amor divertido vale la pena." },
+        "2-4-9": { titulo: "El Triunfo del Amor Alegre", texto: "Amor (❤️), alegría (🌈) y triunfo (🏆): no solo encontrarás amor, estarás orgulloso de él. Una relación feliz que otros admirarán. Tu historia será de las bonitas." },
+        "2-4-10": { titulo: "La Magia del Amor Radiante", texto: "Amor (❤️), alegría (🌈) y magia (💫): experimentarás un amor mágico. Sentirás que flotas y verás el mundo brillante. Mariposas constantes y un toque especial inexplicable." },
+        "2-4-11": { titulo: "La Sorpresa Romántica Feliz", texto: "Amor (❤️), alegría (🌈) y sorpresa (🎁): recibirás una sorpresa romántica alegre. Un gesto inesperado o declaración que no imaginabas. Prepárate para sonreír de oreja a oreja." },
+        "2-4-12": { titulo: "La Alegría del Amor entre Amigos", texto: "Amor (❤️), alegría (🌈) y amistad (🌺): tu mayor alegría vendrá de relaciones cercanas. Amistad que se vuelve amor o pareja que es mejor amigo. Conexiones satisfactorias." },
+        "2-5-6": { titulo: "El Romance Creativo y Aventurero", texto: "Amor (❤️), creatividad (🎨) y aventura (🚀): espíritu libre en el amor. No sigues reglas convencionales. Expresarás amor de formas únicas y vivirás experiencias diferentes." },
+        "2-5-7": { titulo: "El Amor Artístico del Afortunado", texto: "Amor (❤️), creatividad (🎨) y suerte (🌟): tu talento creativo atraerá amor. Tu arte o expresión única llamará la atención de alguien especial. Tu creatividad es tu carta de presentación." },
+        "2-5-8": { titulo: "El Romance Divertido del Artista", texto: "Amor (❤️), creatividad (🎨) y diversión (🎪): sé espontáneo. Crea citas originales, mensajes divertidos. El romance no tiene que ser serio. Diviértete enamorando." },
+        "2-5-9": { titulo: "El Triunfo del Amor Creativo", texto: "Amor (❤️), creatividad (🎨) y triunfo (🏆): tu forma única de amar será valorada. Esa persona apreciará tu originalidad. No cambies; la persona correcta amará tu forma de ser." },
+        "2-5-10": { titulo: "La Magia del Romance Artístico", texto: "Amor (❤️), creatividad (🎨) y magia (💫): crearás algo hermoso con tu amor. Tal vez arte inspirado en esa persona o una relación que es una obra maestra. Misticismo puro." },
+        "2-5-11": { titulo: "La Sorpresa del Artista Enamorado", texto: "Amor (❤️), creatividad (🎨) y sorpresa (🎁): sorprenderás memorablemente con tu creatividad. Un gesto artístico inesperado conquistará corazones. Tu originalidad es clave." },
+        "2-5-12": { titulo: "El Arte de la Amistad Amorosa", texto: "Amor (❤️), creatividad (🎨) y amistad (🌺): tus amigos son musas. O colaborarás y nacerá amor. Las mejores relaciones crean juntas e inspiran mutuamente." },
+        "2-6-7": { titulo: "La Aventura Amorosa Afortunada", texto: "Amor (❤️), aventura (🚀) y suerte (🌟): sé audaz en el amor. Toma ese riesgo, acércate, haz ese viaje. La fortuna favorece a los valientes. Atrévete y serás recompensado." },
+        "2-6-8": { titulo: "El Romance Aventurero y Divertido", texto: "Amor (❤️), aventura (🚀) y diversión (🎪): amor emocionante y lleno de experiencias. No busques lo predecible. Busca a alguien con quien cada día sea una aventura diferente." },
+        "2-6-9": { titulo: "El Triunfo del Amor Valiente", texto: "Amor (❤️), aventura (🚀) y triunfo (🏆): tu valentía será recompensada. Ese riesgo o vulnerabilidad resultará en victoria. Los corazones valientes conquistan el amor verdadero." },
+        "2-6-10": { titulo: "La Magia de la Aventura Amorosa", texto: "Amor (❤️), aventura (🚀) y magia (💫): experimentarás un amor transformador. No será común, te cambiará profundamente. Una conexión que te llevará a territorios emocionales nuevos." },
+        "2-6-11": { titulo: "El Amor que Llega de Sorpresa", texto: "Amor (❤️), aventura (🚀) y sorpresa (🎁): encontrarás amor donde menos esperas. En un viaje o actividad nueva. Aparecerá cuando vivas plenamente, no buscando desesperadamente." },
+        "2-6-12": { titulo: "La Aventura Compartida del Amor", texto: "Amor (❤️), aventura (🚀) y amistad (🌺): viajar o vivir aventuras con amigos puede llevar al romance. Las mejores relaciones exploran el mundo juntas." },
+        "2-7-8": { titulo: "El Amor Afortunado que se Celebra", texto: "Amor (❤️), suerte (🌟) y diversión (🎪): tu momento de brillar. Tienes el timing y la persona correcta. Disfruta este periodo romántico especial. Celebra tu buena suerte." },
+        "2-7-9": { titulo: "El Triunfo Total del Amor Destinado", texto: "Amor (❤️), suerte (🌟) y triunfo (🏆): triple confirmación. Amor correcto, momento correcto, relación victoriosa. El universo orquesta tu historia perfecta." },
+        "2-7-10": { titulo: "El Milagro del Amor Mágico", texto: "Amor (❤️), suerte (🌟) y magia (💫): amor que desafía la lógica. Conexión fuerte, coincidencias imposibles, química inexplicable. Este amor tendrá algo místico." },
+        "2-7-11": { titulo: "La Sorpresa Romántica del Destino", texto: "Amor (❤️), suerte (🌟) y sorpresa (🎁): el universo prepara algo especial. Una sorpresa romántica que cambiará todo. El amor llega cuando el destino decide." },
+        "2-7-12": { titulo: "La Suerte de Tener Amor y Amistad", texto: "Amor (❤️), suerte (🌟) y amistad (🌺): eres afortunado de tener personas que te aman. Amor romántico o de amigos, estás rodeado de afecto genuino. Aprécialo." },
+        "2-8-9": { titulo: "El Triunfo del Amor Divertido", texto: "Amor (❤️), diversión (🎪) y triunfo (🏆): ganarás en el amor riéndote. Tu humor es tu seducción. La persona correcta apreciará tu ligereza. El amor con risas perdura." },
+        "2-8-10": { titulo: "La Magia del Romance Juguetón", texto: "Amor (❤️), diversión (🎪) y magia (💫): hay magia en amar con ligereza. No tomarte el romance tan en serio te hace atractivo. Tu capacidad de jugar es tu encanto." },
+        "2-8-11": { titulo: "La Sorpresa Romántica Divertida", texto: "Amor (❤️), diversión (🎪) y sorpresa (🎁): una sorpresa que te hará reír y enamorarte. Gesto gracioso pero romántico. El amor tiene sentido del humor y te lo demostrará." },
+        "2-8-12": { titulo: "El Amor Divertido entre Amigos", texto: "Amor (❤️), diversión (🎪) y amistad (🌺): el mejor amor se siente como estar con tu mejor amigo. Sé tú mismo, ríe sin filtros. Ese es el amor verdadero." },
+        "2-9-10": { titulo: "El Triunfo Místico del Amor", texto: "Amor (❤️), triunfo (🏆) y magia (💫): tu historia será legendaria. Un romance recordado como ejemplo de amor verdadero. Tu relación tendrá un toque mágico inspirador." },
+        "2-9-11": { titulo: "El Premio Inesperado del Corazón", texto: "Amor (❤️), triunfo (🏆) y sorpresa (🎁): ganarás en el amor inesperadamente. Declaración sorpresiva o momento alineado. El amor llegará envuelto en sorpresa y triunfo." },
+        "2-9-12": { titulo: "El Triunfo del Amor entre Amigos", texto: "Amor (❤️), triunfo (🏆) y amistad (🌺): encontraste una relación que es amor y amistad. Compañero de vida y mejor amigo. Has ganado el premio mayor." },
+        "2-10-11": { titulo: "El Milagro Romántico Inesperado", texto: "Amor (❤️), magia (💫) y sorpresa (🎁): experimentarás algo de película. Momento mágico inesperado. El universo escribe tu historia con tinta especial." },
+        "2-10-12": { titulo: "La Magia del Amor y la Amistad", texto: "Amor (❤️), magia (💫) y amistad (🌺): conexión mística en tus relaciones. No llegaron por casualidad. Hay un lazo invisible y magia en cómo se encontraron." },
+        "2-11-12": { titulo: "El Amigo que se Convierte en Amor", texto: "Amor (❤️), sorpresa (🎁) y amistad (🌺): una amistad podría ser más. Esa persona que siempre estuvo ahí podría ser quien buscas. El amor está cerca." },
+        "3-4-5": { titulo: "El Éxito Alegre del Creativo", texto: "Éxito (🎯), alegría (🌈) y creatividad (🎨): tus logros vendrán de lo que amas. No se sentirá como trabajo. El éxito con felicidad y arte es el más valioso." },
+        "3-4-6": { titulo: "La Aventura hacia el Éxito Feliz", texto: "Éxito (🎯), alegría (🌈) y aventura (🚀): disfruta el viaje a tus metas. No olvides el camino. Cada paso debe llenarte de alegría. Disfruta el proceso." },
+        "3-4-7": { titulo: "El Éxito Afortunado del Optimista", texto: "Éxito (🎯), alegría (🌈) y suerte (🌟): tu actitud positiva abre puertas. Personas felices atraen oportunidades. Tu sonrisa es ventaja competitiva. Sigue sonriendo." },
+        "3-4-8": { titulo: "El Éxito que se Celebra Constantemente", texto: "Éxito (🎯), alegría (🌈) y diversión (🎪): celebra cada pequeño logro. No esperes al final. Disfruta cada victoria y progreso. El éxito son momentos celebrables." },
+        "3-4-9": { titulo: "El Doble Triunfo de la Alegría", texto: "Éxito (🎯), alegría (🌈) y triunfo (🏆): doble confirmación. No solo ganarás, serás feliz con tu éxito. Victoria con significado real, no solo en papel." },
+        "3-4-10": { titulo: "La Magia del Éxito Alegre", texto: "Éxito (🎯), alegría (🌈) y magia (💫): hay algo especial en cómo alcanzas metas. Llegas con gracia y alegría. Mantener positividad es un poder místico." },
+        "3-4-11": { titulo: "El Éxito que Llega de Sorpresa", texto: "Éxito (🎯), alegría (🌈) y sorpresa (🎁): lograrás algo inesperadamente. Oportunidad sorpresiva o éxito desde un ángulo no previsto. La victoria llega disfrazada." },
+        "3-4-12": { titulo: "El Éxito del Equipo Feliz", texto: "Éxito (🎯), alegría (🌈) y amistad (🌺): tus mejores logros vendrán del equipo. Colabora con amigos. El éxito compartido es más dulce y crea lazos eternos." },
+        "3-5-6": { titulo: "El Éxito del Explorador Creativo", texto: "Éxito (🎯), creatividad (🎨) y aventura (🚀): espíritu pionero. Éxito al combinar talento y valentía. Crea tu propio camino. Los innovadores cambian el mundo." },
+        "3-5-7": { titulo: "El Éxito Afortunado del Artista", texto: "Éxito (🎯), creatividad (🎨) y suerte (🌟): tu talento será reconocido en el momento perfecto. Tu creación llegará a las personas correctas. El universo te da visibilidad." },
+        "3-5-8": { titulo: "El Éxito Creativo Divertido", texto: "Éxito (🎯), creatividad (🎨) y diversión (🎪): el mejor trabajo surge divirtiéndose. No te presiones. Juega y disfruta. Tu mejor arte llega cuando no te tomas tan en serio." },
+        "3-5-9": { titulo: "El Doble Triunfo del Genio Creativo", texto: "Éxito (🎯), creatividad (🎨) y triunfo (🏆): doble victoria. Tu originalidad te llevará a la cima. Tu autenticidad brillará. No dudes de tu talento único." },
+        "3-5-10": { titulo: "La Magia del Éxito Creativo", texto: "Éxito (🎯), creatividad (🎨) y magia (💫): posees un don especial. Tu creatividad manifiesta cosas nuevas. Transformas realidades. Usa tu don sabiamente." },
+        "3-5-11": { titulo: "El Éxito Creativo Inesperado", texto: "Éxito (🎯), creatividad (🎨) y sorpresa (🎁): una idea brillante cambiará tu vida. Momento eureka inesperado. Tu éxito vendrá de un destello de genio sorpresa." },
+        "3-5-12": { titulo: "El Éxito Creativo Colaborativo", texto: "Éxito (🎯), creatividad (🎨) y amistad (🌺): mejores creaciones de colaboraciones. Trabaja con otros, combina fuerzas. La sinergia produce resultados únicos." },
+        "3-6-7": { titulo: "El Éxito del Aventurero Afortunado", texto: "Éxito (🎯), aventura (🚀) y suerte (🌟): toma ese riesgo. Estrellas alineadas. Ese cambio o proyecto, hazlo. La fortuna favorece a los valientes." },
+        "3-6-8": { titulo: "El Éxito de la Aventura Divertida", texto: "Éxito (🎯), aventura (🚀) y diversión (🎪): logro al hacer lo que te emociona. Busca objetivos que te hagan sentir vivo, desafíen y diviertan." },
+        "3-6-9": { titulo: "El Triple Triunfo del Explorador", texto: "Éxito (🎯), aventura (🚀) y triunfo (🏆): triple victoria. Tu valentía será recompensada. Superarás tu meta. Salir de tu zona de confort te llevará lejos." },
+        "3-6-10": { titulo: "La Magia de la Transformación Exitosa", texto: "Éxito (🎯), aventura (🚀) y magia (💫): metamorfosis profunda. Cambio que trae éxito y crecimiento. Prepárate para una versión mejorada de ti mismo." },
+        "3-6-11": { titulo: "El Éxito del Giro Inesperado", texto: "Éxito (🎯), aventura (🚀) y sorpresa (🎁): giro inesperado con gran éxito. Cambio no planeado, oportunidad no vista. El universo tiene planes mejores." },
+        "3-6-12": { titulo: "El Éxito del Equipo Aventurero", texto: "Éxito (🎯), aventura (🚀) y amistad (🌺): éxitos al asociarte con las personas correctas. Alianzas estratégicas con amigos. El éxito colectivo multiplica la victoria." },
+        "3-7-8": { titulo: "El Éxito Afortunado que se Celebra", texto: "Éxito (🎯), suerte (🌟) y diversión (🎪): todo sale bien. Tienes talento, suerte y momento. Aprovecha y celebra. Tu buena energía atrae éxito." },
+        "3-7-9": { titulo: "El Triunfo Total del Afortunado", texto: "Éxito (🎯), suerte (🌟) y triunfo (🏆): triple confirmación. Ganarás. Todo a favor. Mantén confianza, el universo decidió tu victoria." },
+        "3-7-10": { titulo: "El Milagro del Éxito Imposible", texto: "Éxito (🎯), suerte (🌟) y magia (💫): lograrás lo imposible. Fe inquebrantable y favor del universo crean milagros. Mantén la certeza." },
+        "3-7-11": { titulo: "El Éxito del Momento Perfecto", texto: "Éxito (🎯), suerte (🌟) y sorpresa (🎁): oportunidad dorada sorpresa. Lugar y momento correctos. El universo orquesta tu gran momento." },
+        "3-7-12": { titulo: "El Éxito Afortunado del Equipo", texto: "Éxito (🎯), suerte (🌟) y amistad (🌺): tu círculo es tu fortuna. Amigos abren puertas y apoyan. El éxito es fácil con buen equipo. Cultívalo." },
+        "3-8-9": { titulo: "El Triunfo que se Disfruta Plenamente", texto: "Éxito (🎯), diversión (🎪) y triunfo (🏆): doble victoria. Disfruta tu éxito. Celebra sin modestia. Fiesta y alegría. Te lo mereces." },
+        "3-8-10": { titulo: "La Magia del Éxito Divertido", texto: "Éxito (🎯), diversión (🎪) y magia (💫): especial forma de alcanzar éxito. Llegas con sonrisa mientras otros sufren. Tu ligereza es tu superpoder." },
+        "3-8-11": { titulo: "El Éxito de la Celebración Inesperada", texto: "Éxito (🎯), diversión (🎪) y sorpresa (🎁): razón inesperada para celebrar. Logro no visto venir. Fiesta no planeada. La vida te sorprenderá." },
+        "3-8-12": { titulo: "El Éxito del Equipo que se Divierte", texto: "Éxito (🎯), diversión (🎪) y amistad (🌺): mejores proyectos donde el equipo disfruta. Busca colaboradores divertidos. Éxito riendo con amigos." },
+        "3-9-10": { titulo: "El Doble Triunfo Místico", texto: "Éxito (🎯), triunfo (🏆) y magia (💫): éxito legendario. Logro que inspira y deja huella. Tu historia tendrá algo especial recordado." },
+        "3-9-11": { titulo: "El Triunfo del Premio Inesperado", texto: "Éxito (🎯), triunfo (🏆) y sorpresa (🎁): victoria sorpresiva. Ganarás algo sin saberlo. Reconocimiento de la nada. El universo recompensa." },
+        "3-9-12": { titulo: "El Triunfo del Equipo Exitoso", texto: "Éxito (🎯), triunfo (🏆) y amistad (🌺): éxito compartido. No llegarás solo. Tu equipo triunfará junto. Éxito compartido vale la pena." },
+        "3-10-11": { titulo: "El Milagro del Éxito Sorpresivo", texto: "Éxito (🎯), magia (💫) y sorpresa (🎁): algo extraordinario sucederá. Éxito milagroso, oportunidad improbable. Lo imposible se vuelve posible." },
+        "3-10-12": { titulo: "La Magia del Éxito Colectivo", texto: "Éxito (🎯), magia (💫) y amistad (🌺): sinergia mística en tu equipo. Juntos crean energía que multiplica resultados. Tu círculo es mágico." },
+        "3-11-12": { titulo: "El Éxito del Aliado Inesperado", texto: "Éxito (🎯), sorpresa (🎁) y amistad (🌺): aliado inesperado ayudará. Conexión sorpresiva. El universo conecta personas para tu éxito." },
+        "4-5-6": { titulo: "La Aventura Alegre del Creativo", texto: "Alegría (🌈), creatividad (🎨) y aventura (🚀): espíritu libre. Vida como lienzo lleno de posibilidades. Optimismo y valentía crearán experiencias únicas." },
+        "4-5-7": { titulo: "El Artista Alegre Afortunado", texto: "Alegría (🌈), creatividad (🎨) y suerte (🌟): talento reconocido. Tus ideas llegarán a las personas correctas. El universo prepara tu brillo creativo." },
+        "4-5-8": { titulo: "El Festival Creativo del Alma Feliz", texto: "Alegría (🌈), creatividad (🎨) y diversión (🎪): crear es un juego divertido. No te presiones. Experimenta y disfruta. Tu mejor arte nace divirtiéndote." },
+        "4-5-9": { titulo: "El Triunfo del Artista Alegre", texto: "Alegría (🌈), creatividad (🎨) y triunfo (🏆): ganarás con sonrisa. Talento y actitud positiva te llevarán al reconocimiento. Combinación ganadora." },
+        "4-5-10": { titulo: "La Magia del Creador Alegre", texto: "Alegría (🌈), creatividad (🎨) y magia (💫): alegría contagiosa, creatividad inspiradora. Transformas felicidad en arte mágicamente. Don especial." },
+        "4-5-11": { titulo: "La Inspiración Inesperada del Alegre", texto: "Alegría (🌈), creatividad (🎨) y sorpresa (🎁): idea brillante en momento de alegría. Inspiración que cambia todo. Creatividad fluye mejor feliz." },
+        "4-5-12": { titulo: "El Arte de la Amistad Alegre", texto: "Alegría (🌈), creatividad (🎨) y amistad (🌺): amigos como inspiración. Colabora y creen juntos. Mejores obras de sinergia de amigos talentosos." },
+        "4-6-7": { titulo: "La Aventura Alegre del Afortunado", texto: "Alegría (🌈), aventura (🚀) y suerte (🌟): lánzate a la experiencia. Momento perfecto para explorar. Actitud positiva atraerá experiencias increíbles." },
+        "4-6-8": { titulo: "El Festival de la Aventura Divertida", texto: "Alegría (🌈), aventura (🚀) y diversión (🎪): vive plenamente. Haz esa aventura. Mejores recuerdos nacen combinando valentía con diversión." },
+        "4-6-9": { titulo: "El Triunfo del Aventurero Alegre", texto: "Alegría (🌈), aventura (🚀) y triunfo (🏆): valentía y optimismo llevarán a victorias. Disfrutarás el viaje. Ganarás con sonrisa." },
+        "4-6-10": { titulo: "La Magia del Viaje Alegre", texto: "Alegría (🌈), aventura (🚀) y magia (💫): experiencia transformadora. Viaje que te cambiará profundamente. Evoluciona disfrutando el proceso." },
+        "4-6-11": { titulo: "La Sorpresa del Aventurero Optimista", texto: "Alegría (🌈), aventura (🚀) y sorpresa (🎁): oportunidad emocionante sorpresa. Invitación inesperada. Di sí a lo imprevisto." },
+        "4-6-12": { titulo: "La Aventura Compartida de los Amigos", texto: "Alegría (🌈), aventura (🚀) y amistad (🌺): vive aventuras con amigos. Planeen ese viaje. Las mejores aventuras se comparten con quienes amas." },
+        "4-7-8": { titulo: "La Fiesta del Alma Alegre y Afortunada", texto: "Alegría (🌈), suerte (🌟) y diversión (🎪): momento dorado. Todo fluye bien. Disfruta y celebra. Tu buena vibra atrae bendiciones." },
+        "4-7-9": { titulo: "El Triunfo del Optimista Afortunado", texto: "Alegría (🌈), suerte (🌟) y triunfo (🏆): victoria alegre. Ganarás con felicidad genuina. Actitud positiva es tu estrategia. Éxito sonriendo." },
+        "4-7-10": { titulo: "La Magia de la Alegría Afortunada", texto: "Alegría (🌈), suerte (🌟) y magia (💫): alegría constante es poder mágico. Atraes fortuna siendo tú. Universo conspira por tu felicidad." },
+        "4-7-11": { titulo: "La Sorpresa que Multiplica la Alegría", texto: "Alegría (🌈), suerte (🌟) y sorpresa (🎁): algo maravilloso sucederá. Sorpresa que multiplica felicidad. Regalo especial del universo." },
+        "4-7-12": { titulo: "La Suerte de la Amistad Alegre", texto: "Alegría (🌈), suerte (🌟) y amistad (🌺): tu fortuna son tus amigos. Risas, apoyo y celebración. Afortunado de tener ese círculo." },
+        "4-8-9": { titulo: "El Triunfo de la Celebración Constante", texto: "Alegría (🌈), diversión (🎪) y triunfo (🏆): ganarás pasándola increíble. Disfrutar el proceso es admirable. Éxito dulce con risas." },
+        "4-8-10": { titulo: "La Magia del Alma Festiva", texto: "Alegría (🌈), diversión (🎪) y magia (💫): vivir como celebración es especial. Alegría y diversión crean energía mágica transformadora. Eres luz." },
+        "4-8-11": { titulo: "La Sorpresa de la Fiesta Inesperada", texto: "Alegría (🌈), diversión (🎪) y sorpresa (🎁): invitación inesperada a celebrar. Fiesta sorpresa o salida improvisada. Di sí a la alegría espontánea." },
+        "4-8-12": { titulo: "La Celebración de la Amistad Feliz", texto: "Alegría (🌈), diversión (🎪) y amistad (🌺): momentos valiosos riendo con amigos. Organiza esa reunión. La vida es mejor celebrada con tu tribu." },
+        "4-9-10": { titulo: "El Triunfo Mágico de la Alegría", texto: "Alegría (🌈), triunfo (🏆) y magia (💫): victoria especial con alegría y magia. Mantener optimismo hace tu historia inspiradora." },
+        "4-9-11": { titulo: "El Premio Alegre Inesperado", texto: "Alegría (🌈), triunfo (🏆) y sorpresa (🎁): ganarás algo inesperadamente. Reconocimiento sorpresa. Actitud positiva atrajo premio." },
+        "4-9-12": { titulo: "El Triunfo Compartido del Grupo Feliz", texto: "Alegría (🌈), triunfo (🏆) y amistad (🌺): victoria colectiva. Ganarás junto a amigos. Éxito compartido es significativo. Celebrarán juntos." },
+        "4-10-11": { titulo: "El Milagro de la Alegría Sorpresiva", texto: "Alegría (🌈), magia (💫) y sorpresa (🎁): algo mágico y sorprendente alegrará tu vida. Experiencia de cuento. Universo prepara algo especial." },
+        "4-10-12": { titulo: "La Magia de la Amistad Alegre", texto: "Alegría (🌈), magia (💫) y amistad (🌺): misticismo en risas compartidas. Conexión especial y química inexplicable. Amistades no casuales." },
+        "4-11-12": { titulo: "El Amigo Alegre que Llega de Sorpresa", texto: "Alegría (🌈), sorpresa (🎁) y amistad (🌺): conocerás a alguien inesperado. Nueva amistad alegre. Llegará cuando menos esperes." },
+        "5-6-7": { titulo: "El Explorador Creativo Afortunado", texto: "Creatividad (🎨), aventura (🚀) y suerte (🌟): toma riesgo creativo. Proyecto innovador. Universo alineado. Originalidad, valentía y fortuna crearán algo extraordinario." },
+        "5-6-8": { titulo: "La Aventura Creativa Divertida", texto: "Creatividad (🎨), aventura (🚀) y diversión (🎪): mejores ideas saliendo de zona de confort divirtiéndose. Experimenta sin miedo. Innovación requiere humor." },
+        "5-6-9": { titulo: "El Triunfo del Creador Valiente", texto: "Creatividad (🎨), aventura (🚀) y triunfo (🏆): valentía recompensada. Sigue tu visión única. Pioneros enfrentan escepticismo antes de la gloria." },
+        "5-6-10": { titulo: "La Magia del Creador Explorador", texto: "Creatividad (🎨), aventura (🚀) y magia (💫): poder de materializar visiones nuevas. Explora lo desconocido. Creador de mundos y posibilidades." },
+        "5-6-11": { titulo: "La Inspiración del Riesgo Creativo", texto: "Creatividad (🎨), aventura (🚀) y sorpresa (🎁): idea revolucionaria al atreverse. Combinar creatividad y valentía produce sorpresas. Genio en la frontera." },
+        "5-6-12": { titulo: "El Proyecto Creativo Colectivo", texto: "Creatividad (🎨), aventura (🚀) y amistad (🌺): proyecto creativo con amigos. Idea loca juntos. Sinergia de talentos aventureros produce resultados extraordinarios." },
+        "5-7-8": { titulo: "El Artista Afortunado que se Divierte", texto: "Creatividad (🎨), suerte (🌟) y diversión (🎪): talento reconocido divirtiéndose. No te presiones. Juega y disfruta. Mejor obra sin preocuparse por perfección." },
+        "5-7-9": { titulo: "El Triunfo del Genio Afortunado", texto: "Creatividad (🎨), suerte (🌟) y triunfo (🏆): triple confirmación. Talento reconocido, momento llegado. Universo amplifica tu creatividad. Momento de brillar." },
+        "5-7-10": { titulo: "La Magia del Artista Destinado", texto: "Creatividad (🎨), suerte (🌟) y magia (💫): talento como canal místico. Conexión con inspiración universal. Mensajero de la magia." },
+        "5-7-11": { titulo: "La Oportunidad Creativa Inesperada", texto: "Creatividad (🎨), suerte (🌟) y sorpresa (🎁): oportunidad de oro sorpresa. Puerta abierta, conexión inesperada. Arte encuentra audiencia perfecta." },
+        "5-7-12": { titulo: "El Talento Afortunado del Colectivo", texto: "Creatividad (🎨), suerte (🌟) y amistad (🌺): amigos creativos son fortuna. Colaborar multiplica oportunidades. Círculo creativo es trampolín al éxito." },
+        "5-8-9": { titulo: "El Triunfo del Artista Divertido", texto: "Creatividad (🎨), diversión (🎪) y triunfo (🏆): ganarás riéndote. No tomarse en serio creando arte serio es ventaja. Éxito fácil disfrutando." },
+        "5-8-10": { titulo: "La Magia del Juego Creativo", texto: "Creatividad (🎨), diversión (🎪) y magia (💫): poder en creatividad lúdica. Juega sin preocupaciones. Inspiración profunda nace del juego puro." },
+        "5-8-11": { titulo: "La Inspiración de la Diversión Creativa", texto: "Creatividad (🎨), diversión (🎪) y sorpresa (🎁): idea brillante divirtiéndose. Relajación produce solución creativa. Inspiración ama ligereza." },
+        "5-8-12": { titulo: "El Colectivo Creativo Divertido", texto: "Creatividad (🎨), diversión (🎪) y amistad (🌺): crear con amigos debe ser divertido. Proyectos colaborativos con risas. Mejor arte colectivo disfrutando." },
+        "5-9-10": { titulo: "El Doble Triunfo del Mago Creativo", texto: "Creatividad (🎨), triunfo (🏆) y magia (💫): victoria legendaria. Obra que deja huella. Impacto mágico. Destinado a trascender." },
+        "5-9-11": { titulo: "El Premio Creativo Inesperado", texto: "Creatividad (🎨), triunfo (🏆) y sorpresa (🎁): talento reconocido inesperadamente. Premio o oportunidad sorpresa. Arte encuentra su momento." },
+        "5-9-12": { titulo: "El Triunfo del Colectivo Creativo", texto: "Creatividad (🎨), triunfo (🏆) y amistad (🌺): logro creativo colaborativo. Unión de talentos con propósito. Victoria compartida más significativa." },
+        "5-10-11": { titulo: "El Milagro de la Inspiración Divina", texto: "Creatividad (🎨), magia (💫) y sorpresa (🎁): momento de genio puro. Idea como rayo, visión extraordinaria. Canaliza algo único." },
+        "5-10-12": { titulo: "La Magia del Círculo Creativo", texto: "Creatividad (🎨), magia (💫) y amistad (🌺): sinergia mística en unión de talentos. Química inexplicable. Círculo creativo canaliza fuerzas mayores." },
+        "5-11-12": { titulo: "El Colaborador Creativo Inesperado", texto: "Creatividad (🎨), sorpresa (🎁) y amistad (🌺): conocerás talento complementario. Colaboración inesperada con resultados sorprendentes. Universo conecta talentos." },
+        "6-7-8": { titulo: "La Aventura Afortunada Divertida", texto: "Aventura (🚀), suerte (🌟) y diversión (🎪): lánzate a la experiencia. Momento perfecto. Aventura memorable combinando valentía, fortuna y diversión." },
+        "6-7-9": { titulo: "El Triunfo del Explorador Afortunado", texto: "Aventura (🚀), suerte (🌟) y triunfo (🏆): triple confirmación. Valentía recompensada. Superarás meta. Universo favorece aventureros audaces." },
+        "6-7-10": { titulo: "La Magia del Destino Aventurero", texto: "Aventura (🚀), suerte (🌟) y magia (💫): vivirás algo que cambiará tu vida. Aventura espiritual transformadora orquestada por el destino." },
+        "6-7-11": { titulo: "La Oportunidad del Viaje Inesperado", texto: "Aventura (🚀), suerte (🌟) y sorpresa (🎁): oportunidad de viajar sorpresa. Invitación inesperada. Di sí a la puerta especial." },
+        "6-7-12": { titulo: "El Viaje Afortunado con Amigos", texto: "Aventura (🚀), suerte (🌟) y amistad (🌺): vive aventura con amigos. Momento perfecto. Recuerdos juntos durarán toda la vida." },
+        "6-8-9": { titulo: "El Triunfo de la Aventura Divertida", texto: "Aventura (🚀), diversión (🎪) y triunfo (🏆): valentía y humor llevan al éxito. Disfruta el camino. Convertir desafíos en diversión es tu poder." },
+        "6-8-10": { titulo: "La Magia de la Exploración Lúdica", texto: "Aventura (🚀), diversión (🎪) y magia (💫): valentía con humor accede a poder especial. Curiosidad y alegría transforman experiencia en magia." },
+        "6-8-11": { titulo: "La Aventura Inesperada Divertida", texto: "Aventura (🚀), diversión (🎪) y sorpresa (🎁): experiencia emocionante sorpresa. Invitación nueva. Di sí a lo inesperado memorable." },
+        "6-8-12": { titulo: "La Aventura del Grupo Divertido", texto: "Aventura (🚀), diversión (🎪) y amistad (🌺): aventuras donde grupo se divierte. Organiza salida con amigos. Risas compartidas crean recuerdos." },
+        "6-9-10": { titulo: "El Triunfo Místico del Explorador", texto: "Aventura (🚀), triunfo (🏆) y magia (💫): victoria épica. Conquista legendaria. Valentía para aventurarse te hace ejemplo posible." },
+        "6-9-11": { titulo: "El Triunfo del Giro Aventurero", texto: "Aventura (🚀), triunfo (🏆) y sorpresa (🎁): ganarás inesperadamente. Valentía lleva a victoria por camino diferente. Tesoros en lugares inesperados." },
+        "6-9-12": { titulo: "El Triunfo del Equipo Aventurero", texto: "Aventura (🚀), triunfo (🏆) y amistad (🌺): victoria en aventura compartida. Conquistarán y celebrarán juntos. Éxito colectivo dulce." },
+        "6-10-11": { titulo: "El Milagro del Cambio Transformador", texto: "Aventura (🚀), magia (💫) y sorpresa (🎁): transformación profunda inesperada. Cambio mágico que mejora tu versión. Evoluciona." },
+        "6-10-12": { titulo: "La Magia del Viaje Compartido", texto: "Aventura (🚀), magia (💫) y amistad (🌺): misticismo en aventuras compartidas. Viajes con amigos son rituales que fortalecen lazos." },
+        "6-11-12": { titulo: "El Compañero de Viaje Inesperado", texto: "Aventura (🚀), sorpresa (🎁) y amistad (🌺): conocerás a alguien especial explorando. Amistad en movimiento. Mejores compañeros en caminos inesperados." },
+        "7-8-9": { titulo: "El Triunfo de la Buena Racha", texto: "Suerte (🌟), diversión (🎪) y triunfo (🏆): momento dorado. Suerte, diversión y victoria. Aprovecha racha. Celebra, universo de tu lado." },
+        "7-8-10": { titulo: "La Magia de la Fortuna Alegre", texto: "Suerte (🌟), diversión (🎪) y magia (💫): alegría y ligereza atraen fortuna. Universo responde a vibra alta. Humor es amuleto." },
+        "7-8-11": { titulo: "La Sorpresa del Momento Perfecto", texto: "Suerte (🌟), diversión (🎪) y sorpresa (🎁): lugar y momento correctos disfrutando. Oportunidad mientras te diviertes. Regalo del destino." },
+        "7-8-12": { titulo: "La Suerte del Grupo Divertido", texto: "Suerte (🌟), diversión (🎪) y amistad (🌺): círculo social trae fortuna. Amigos abren puertas y traen suerte. Cultiva relaciones bendecidas." },
+        "7-9-10": { titulo: "El Triunfo Místico del Destinado", texto: "Suerte (🌟), triunfo (🏆) y magia (💫): ganarás gloriosamente. Favor del universo y magia cósmica. Victoria escrita en estrellas." },
+        "7-9-11": { titulo: "El Premio Inesperado del Afortunado", texto: "Suerte (🌟), triunfo (🏆) y sorpresa (🎁): ganarás algo importante inesperadamente. Premio no sabido. Fortuna sorprende gratamente." },
+        "7-9-12": { titulo: "El Triunfo del Equipo Afortunado", texto: "Suerte (🌟), triunfo (🏆) y amistad (🌺): victoria compartida. Fortuna colectiva. Talento, equipo y suerte imparables. Victoria memorable." },
+        "7-10-11": { titulo: "El Milagro del Destino Perfecto", texto: "Suerte (🌟), magia (💫) y sorpresa (🎁): presenciarás lo imposible. Milagro o coincidencia imposible. Universo se manifiesta." },
+        "7-10-12": { titulo: "La Magia de la Tribu Afortunada", texto: "Suerte (🌟), magia (💫) y amistad (🌺): sinergia mística en círculo cercano. Energía que atrae fortuna. Propósito mayor en conexión." },
+        "7-11-12": { titulo: "El Amigo Afortunado Inesperado", texto: "Suerte (🌟), sorpresa (🎁) y amistad (🌺): conocerás a alguien que trae suerte. Conexión fortuita abre puertas. Universo conecta personas." },
+        "8-9-10": { titulo: "El Triunfo Mágico de la Celebración", texto: "Diversión (🎪), triunfo (🏆) y magia (💫): victoria épica y memorable. Ganarás recordado. Buen humor hace éxito inspirador." },
+        "8-9-11": { titulo: "El Triunfo de la Fiesta Sorpresa", texto: "Diversión (🎪), triunfo (🏆) y sorpresa (🎁): ganarás inesperadamente y celebrarás. Éxito sorpresa merece fiesta. Celebra a lo grande." },
+        "8-9-12": { titulo: "El Triunfo del Equipo que se Divierte", texto: "Diversión (🎪), triunfo (🏆) y amistad (🌺): victoria con equipo que disfruta. Ganar divirtiéndose. Risas crean recuerdos." },
+        "8-10-11": { titulo: "El Milagro de la Alegría Espontánea", texto: "Diversión (🎪), magia (💫) y sorpresa (🎁): algo mágico en diversión espontánea. Universo sorprende con regalo especial. Magia ama ligereza." },
+        "8-10-12": { titulo: "La Magia de la Tribu Divertida", texto: "Diversión (🎪), magia (💫) y amistad (🌺): misticismo en risas con amigos. Diversión pura crea energía especial. Círculo social mágico." },
+        "8-11-12": { titulo: "El Amigo Divertido que Llega de Sorpresa", texto: "Diversión (🎪), sorpresa (🎁) y amistad (🌺): conocerás a alguien divertido. Amistad inesperada trae risas. Llegará cuando menos esperes." },
+        "9-10-11": { titulo: "El Triunfo Místico Inesperado", texto: "Triunfo (🏆), magia (💫) y sorpresa (🎁): victoria legendaria e inesperada. Ganarás mágicamente. Historia de éxito inexplicable." },
+        "9-10-12": { titulo: "El Triunfo Mágico del Colectivo", texto: "Triunfo (🏆), magia (💫) y amistad (🌺): equipo unido crea algo mayor. Sinergia mística multiplica resultados. Imparables juntos." },
+        "9-11-12": { titulo: "El Triunfo del Aliado Inesperado", texto: "Triunfo (🏆), sorpresa (🎁) y amistad (🌺): alguien inesperado clave en victoria. Alianza no prevista. Universo conecta para éxito." },
+        "10-11-12": { titulo: "El Milagro de la Conexión Destinada", texto: "Magia (💫), sorpresa (🎁) y amistad (🌺): conocerás a alguien mágico. Conexión inexplicable destinada. Amistad sorpresa trascendental." }
+    };
+
+    let tarotState = { semanal: [], sabio: [] };
+
+    function verTarot(sub) {
+        document.querySelectorAll('.tarot-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tarot-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`view-${sub}`).classList.add('active');
+        const btns = document.querySelectorAll('.tarot-btn');
+        if(sub==='semanal') btns[0].classList.add('active');
+        if(sub==='sabio') btns[1].classList.add('active');
+        if(sub==='galeria') btns[2].classList.add('active');
+    }
+
+    function initTarotGame(tipo) {
+        const container = document.getElementById(`cards-${tipo}`);
+        container.innerHTML = '';
+        tarotState[tipo] = [];
+        document.getElementById(`result-${tipo}`).classList.remove('show');
+        document.getElementById(`btn-${tipo}`).style.display = 'none';
+
+        const mazo = [...TAROT_CARTAS].sort(() => Math.random() - 0.5);
+        
+        mazo.forEach(carta => {
+            const el = document.createElement('div');
+            el.className = 'card-wrapper';
+            el.innerHTML = `<div class="card-face card-back">🔮</div><div class="card-face card-front"><div class="emoji">${carta.emoji}</div><div class="name">${carta.nombre}</div></div>`;
+            el.onclick = () => pickCard(el, carta, tipo);
+            container.appendChild(el);
+        });
+    }
+
+    function pickCard(el, carta, tipo) {
+        if(el.classList.contains('flipped') || tarotState[tipo].length >= 3) return;
+        el.classList.add('flipped');
+        tarotState[tipo].push(carta);
+
+        if(tarotState[tipo].length === 3) {
+            const cont = document.getElementById(`cards-${tipo}`);
+            Array.from(cont.children).forEach(c => { if(!c.classList.contains('flipped')) c.classList.add('disabled'); });
+            
+            setTimeout(() => {
+                if(tipo === 'semanal') mostrarSemanal();
+                else mostrarSabio();
+                document.getElementById(`btn-${tipo}`).style.display = 'inline-block';
+            }, 600);
+        }
+    }
+
+    function mostrarSemanal() {
+        const [c1, c2, c3] = tarotState.semanal;
+        const div = document.getElementById('result-semanal');
+        div.innerHTML = `
+            <h3>Lectura Semanal</h3>
+            <p><strong>📚 Estudios/Trabajo:</strong> ${c1.emoji} ${c1.nombre}<br>
+            <span style="font-size:0.9em; color:#666">${c1.frases.impulso}</span></p>
+            <p><strong>❤️ Amor:</strong> ${c2.emoji} ${c2.nombre}<br>
+            <span style="font-size:0.9em; color:#666">${c2.frases.tu_vibe}</span></p>
+            <p><strong>✨ Sorpresa:</strong> ${c3.emoji} ${c3.nombre}<br>
+            <span style="font-size:0.9em; color:#666">${c3.frases.destino}</span></p>
+        `;
+        div.classList.add('show');
+    }
+
+    function mostrarSabio() {
+        // Ordenar IDs para crear la llave única (ej: "1-5-12")
+        const ids = tarotState.sabio.map(c => c.id).sort((a,b) => a-b);
+        const key = ids.join('-');
+        
+        // Buscar en la DB gigante
+        const consejo = CONSEJOS_SABIOS_COMPLETO[key] || {
+            titulo: "El Misterio de los Sabios",
+            texto: "Una combinación extraña ha aparecido. Los sabios guardan silencio, lo que significa que debes confiar en tu propia intuición."
+        };
+
+        const div = document.getElementById('result-sabio');
+        div.innerHTML = `
+            <h3>${consejo.titulo}</h3>
+            <div style="text-align:center; font-size:1.5em; margin-bottom:15px; letter-spacing:5px;">
+                ${tarotState.sabio[0].emoji}${tarotState.sabio[1].emoji}${tarotState.sabio[2].emoji}
+            </div>
+            <p style="text-align:justify;">${consejo.texto}</p>
+        `;
+        div.classList.add('show');
+    }
+
+    function resetTarot(tipo) { initTarotGame(tipo); }
+
+    // Inicializar Tarot y Galería
+    initTarotGame('semanal');
+    initTarotGame('sabio');
+    const gal = document.getElementById('gallery-container');
+    TAROT_CARTAS.forEach(c => {
+        gal.innerHTML += `<div class="gallery-card"><div class="g-emoji">${c.emoji}</div><div class="g-name">${c.nombre}</div><div class="g-vibe">${c.frases.tu_vibe}</div></div>`;
+    });
+
+</script>
+
+</body>
+</html>
