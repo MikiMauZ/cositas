@@ -277,7 +277,11 @@
                 <div class="menu-icon">✏️</div>
                 <div class="menu-title">El Lápiz</div>
             </div>
-            <div class="menu-card" onclick="showGame('tip')">
+            <div class="menu-card" onclick="showGame('cartero')">
+                <div class="menu-icon">💌</div>
+                <div class="menu-title">El Cartero</div>
+            </div>
+            <div class="menu-card" onclick="showGame('tip')" style="grid-column: span 2; background: linear-gradient(45deg, #fff0f1, #fff);">
                 <div class="menu-icon">☕</div>
                 <div class="menu-title" style="color:#ff6b6b">Zona VIP</div>
             </div>
@@ -377,6 +381,48 @@
             <button id="btn-lapiz" class="action-btn" onclick="giraLapiz()">¡Girar!</button>
         </div>
 
+        <!-- EL CARTERO DEL AMOR -->
+        <div id="cartero" class="game-section">
+            <h2>El Cartero del Amor</h2>
+            <p style="font-size:0.9em; margin-bottom:15px;">
+                ¡Formad un círculo! 👏<br>
+                Pasad el turno al ritmo de la música.<br>
+                Al que le toque al final... ¡Le toca abrazo!
+            </p>
+            
+            <!-- Audio Player -->
+            <div style="background:var(--glass-strong); padding:15px; border-radius:15px; margin-bottom:20px;">
+                <p style="margin-bottom:10px; font-weight:bold;">🎵 Música</p>
+                <audio id="audio-cartero" controls style="width:100%; border-radius:30px;">
+                    <!-- Sustituye TU_ENLACE_DE_GITHUB_AQUI por tu enlace raw de github -->
+                    <source src="TU_ENLACE_DE_GITHUB_AQUI.mp3" type="audio/mpeg">
+                    Tu navegador no soporta audio.
+                </audio>
+            </div>
+
+            <!-- Lyrics -->
+            <div style="text-align:center; font-style:italic; line-height:1.6; color:#555; background:rgba(255,255,255,0.5); padding:15px; border-radius:15px; font-size: 0.95em;">
+                <p>
+                Esta mañana el cartero<br>
+                Del amor pasó por aquí<br>
+                Con su bolsa de secretos<br>
+                Y mensajes para ti
+                </p>
+                <p style="color:#ff6b6b; font-weight:bold;">
+                Ding dong, toca ya<br>
+                Repartiendo sus cartas<br>
+                Con sobres de colores<br>
+                Y sonrisas en la cara
+                </p>
+                <p>
+                Tú elegirás al chico o a la chica<br>
+                Que te hace sonreír<br>
+                Le darás un abrazo grande<br>
+                Y le dirás: "Eres especial para mí"
+                </p>
+            </div>
+        </div>
+
         <div id="tip" class="game-section">
             <h2>Zona VIP ✨</h2>
             <p>¿Te han gustado los juegos?<br>¡Invítame a un batido para crear más!</p>
@@ -430,6 +476,10 @@
         
         // 4. Restaurar título
         document.getElementById('site-title').style.fontSize = '1.8em';
+        
+        // 5. Detener música si suena
+        const audio = document.getElementById('audio-cartero');
+        if(audio) { audio.pause(); audio.currentTime = 0; }
     }
 
     // --- JUEGOS ORIGINALES (Lógica Intacta) ---
