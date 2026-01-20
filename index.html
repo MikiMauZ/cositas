@@ -195,10 +195,10 @@
         .tarot-content { display: none; }
         .tarot-content.active { display: block; animation: fadeIn 0.3s; }
 
-        /* AQUI ESTA EL CAMBIO: 4 COLUMNAS */
+        /* 4 COLUMNAS PARA EL TAROT */
         .cards-container { 
             display: grid; 
-            grid-template-columns: repeat(4, 1fr); /* 4 Columnas */
+            grid-template-columns: repeat(4, 1fr); 
             gap: 8px; 
             margin: 10px auto; 
             perspective: 1000px; 
@@ -227,6 +227,31 @@
         /* ESTILOS EL LÁPIZ */
         .pencil-stage { position: relative; width: 250px; height: 250px; margin: 20px auto; border-radius: 50%; border: 4px dashed rgba(255,255,255,0.5); display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.1); }
         .the-pencil { font-size: 8em; transform-origin: center center; transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1); filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.2)); cursor: pointer; }
+
+        /* --- ESTILOS VERDAD O RETO (NUEVO) --- */
+        .arrow-stage { position: relative; width: 200px; height: 200px; margin: 20px auto; display: flex; justify-content: center; align-items: center; }
+        /* FLECHA GIGANTE */
+        .the-arrow { font-size: 9em; transform-origin: center center; transition: transform 2.5s cubic-bezier(0.1, 0.1, 0.1, 1); filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2)); cursor: pointer; }
+        
+        .vor-options { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
+        .vor-btn { 
+            flex: 1; padding: 15px; border: none; border-radius: 15px; 
+            font-family: 'Fredoka', sans-serif; font-size: 1.2em; cursor: pointer; 
+            color: white; transition: transform 0.2s; 
+        }
+        .btn-verdad { background: linear-gradient(135deg, #74b9ff, #0984e3); box-shadow: 0 4px 0 #0984e3; }
+        .btn-reto { background: linear-gradient(135deg, #ff7675, #d63031); box-shadow: 0 4px 0 #d63031; }
+        .vor-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        .vor-card { 
+            background: rgba(255,255,255,0.95); padding: 25px; border-radius: 20px; 
+            margin-top: 20px; font-size: 1.1em; color: #2d3436; 
+            border: 3px solid; animation: popIn 0.4s;
+            max-height: 200px; overflow-y: auto;
+        }
+        .border-verdad { border-color: #0984e3; }
+        .border-reto { border-color: #d63031; }
+
     </style>
 </head>
 <body>
@@ -247,7 +272,7 @@
 
     <div class="content-area">
         
-        <!-- NUEVO MENÚ PRINCIPAL (HOME) -->
+        <!-- MENÚ PRINCIPAL (HOME) -->
         <div id="home-menu" class="home-menu">
             <div class="menu-card" onclick="showGame('margarita')">
                 <div class="menu-icon">🌼</div>
@@ -281,7 +306,11 @@
                 <div class="menu-icon">💌</div>
                 <div class="menu-title">El Cartero</div>
             </div>
-            <div class="menu-card" onclick="showGame('tip')" style="grid-column: span 2; background: linear-gradient(45deg, #fff0f1, #fff);">
+            <div class="menu-card" onclick="showGame('verdad-reto')">
+                <div class="menu-icon">🏹</div>
+                <div class="menu-title">Verdad/Reto</div>
+            </div>
+            <div class="menu-card" onclick="showGame('tip')" style="grid-column: span 1; background: linear-gradient(45deg, #fff0f1, #fff);">
                 <div class="menu-icon">☕</div>
                 <div class="menu-title" style="color:#ff6b6b">Zona VIP</div>
             </div>
@@ -394,10 +423,11 @@
             <div style="background:var(--glass-strong); padding:15px; border-radius:15px; margin-bottom:20px;">
                 <p style="margin-bottom:10px; font-weight:bold;">🎵 Música</p>
                 <audio id="audio-cartero" controls style="width:100%; border-radius:30px;">
-                    <!-- Sustituye TU_ENLACE_DE_GITHUB_AQUI por tu enlace raw de github -->
-                    <source src="https://github.com/MikiMauZ/cositas/raw/refs/heads/main/Cartero.mp3" type="audio/mpeg">
+                    <!-- Reemplaza el link por tu archivo raw de github usando githack para que suene -->
+                    <source src="TU_ENLACE_DE_GITHUB_AQUI.mp3" type="audio/mpeg">
                     Tu navegador no soporta audio.
                 </audio>
+                <p style="font-size:0.75em; color:#888; margin-top:8px;">⚠️ ¿No suena? Prueba cambiando <b>raw.githubusercontent.com</b> por <b>raw.githack.com</b> en tu enlace.</p>
             </div>
 
             <!-- Lyrics -->
@@ -423,6 +453,29 @@
             </div>
         </div>
 
+        <!-- VERDAD O RETO (MEJORADO) -->
+        <div id="verdad-reto" class="game-section">
+            <h2>Verdad o Reto</h2>
+            <p id="vor-instruction">Pon el móvil en el centro y gira la flecha.</p>
+            
+            <!-- Etapa 1: La Flecha Gigante -->
+            <div class="arrow-stage">
+                <div id="magic-arrow" class="the-arrow" onclick="giraFlecha()">🏹</div>
+            </div>
+
+            <!-- Etapa 2: Botones -->
+            <div id="vor-actions" class="vor-options" style="display:none;">
+                <button class="vor-btn btn-verdad" onclick="jugarVor('verdad')">VERDAD 😇</button>
+                <button class="vor-btn btn-reto" onclick="jugarVor('reto')">RETO 😈</button>
+            </div>
+
+            <!-- Etapa 3: Resultado -->
+            <div id="vor-result" class="vor-card" style="display:none;"></div>
+
+            <button id="btn-vor-spin" class="action-btn" onclick="giraFlecha()">¡Girar Flecha!</button>
+            <button id="btn-vor-reset" class="action-btn" onclick="resetVor()" style="display:none; background:#ccc; color:#555; box-shadow:none;">Siguiente Turno</button>
+        </div>
+
         <div id="tip" class="game-section">
             <h2>Zona VIP ✨</h2>
             <p>¿Te han gustado los juegos?<br>¡Invítame a un batido para crear más!</p>
@@ -434,210 +487,9 @@
 </div>
 
 <script>
-    // --- EFECTO MOUSE ---
-    document.addEventListener('mousemove', function(e){
-        if(Math.random() < 0.85) return;
-        const p = document.createElement('div');
-        p.classList.add('cursor-trail');
-        p.style.left = e.pageX + 'px';
-        p.style.top = e.pageY + 'px';
-        p.style.background = `hsl(${Math.random() * 360}, 100%, 80%)`;
-        document.body.appendChild(p);
-        setTimeout(() => p.remove(), 1000);
-    });
-
-    // --- NAVEGACIÓN NUEVA ---
-    function showGame(id) {
-        // 1. Ocultar Menú Home
-        document.getElementById('home-menu').style.display = 'none';
-        
-        // 2. Ocultar todos los juegos previos
-        document.querySelectorAll('.game-section').forEach(d => d.classList.remove('active'));
-        
-        // 3. Mostrar el juego seleccionado
-        document.getElementById(id).classList.add('active');
-        
-        // 4. Mostrar botón volver
-        document.getElementById('back-btn').style.display = 'flex';
-        
-        // 5. Ajustar título (opcional, para dar mas espacio)
-        document.getElementById('site-title').style.fontSize = '1.2em';
-    }
-
-    function goHome() {
-        // 1. Ocultar juegos
-        document.querySelectorAll('.game-section').forEach(d => d.classList.remove('active'));
-        
-        // 2. Mostrar Menú Home
-        document.getElementById('home-menu').style.display = 'grid';
-        
-        // 3. Ocultar botón volver
-        document.getElementById('back-btn').style.display = 'none';
-        
-        // 4. Restaurar título
-        document.getElementById('site-title').style.fontSize = '1.8em';
-        
-        // 5. Detener música si suena
-        const audio = document.getElementById('audio-cartero');
-        if(audio) { audio.pause(); audio.currentTime = 0; }
-    }
-
-    // --- JUEGOS ORIGINALES (Lógica Intacta) ---
-    // 1. Margarita
-    const frasesPositivas = ["¡Te quiere con locura! 😍", "Eres su crush secreto 🤫", "Te invitará a salir pronto 🎬", "Sueña contigo cada noche 🌙", "¡Amor Verdadero! ❤️"];
-    const frasesNegativas = ["Solo te ve como amiga/o 😢", "Le gusta otra persona 💔", "Mejor olvídalo... 🌬️", "Te ve como hermana/o 😬", "No es para ti 🚫"];
-    const corazonesFlotantes = ["💖", "✨❤️✨", "💕", "💓✨", "💝", "💗"];
-    let petalosRestantes = 12, resMargarita = true;
-
-    function initMargarita() {
-        const garden = document.getElementById('flower-garden');
-        const finalMsg = document.getElementById('final-msg');
-        document.querySelectorAll('.petal').forEach(p => p.remove());
-        finalMsg.style.display = 'none'; finalMsg.innerHTML = '';
-        resMargarita = Math.random() < 0.5; 
-        petalosRestantes = 12;
-        const angleStep = 360 / 12;
-        for (let i = 0; i < 12; i++) {
-            const petal = document.createElement('div');
-            petal.classList.add('petal');
-            const rotacion = i * angleStep;
-            petal.style.transform = `rotate(${rotacion}deg)`;
-            petal.style.setProperty('--rot', `${rotacion}deg`);
-            petal.onclick = function() { quitarPetalo(this); };
-            garden.appendChild(petal);
-        }
-    }
-    function quitarPetalo(el) {
-        if(el.classList.contains('falling')) return;
-        el.classList.add('falling');
-        petalosRestantes--;
-        const floatMsg = document.getElementById('float-msg');
-        if (petalosRestantes > 0) {
-            floatMsg.innerText = corazonesFlotantes[Math.floor(Math.random() * corazonesFlotantes.length)];
-            floatMsg.classList.remove('animate'); void floatMsg.offsetWidth; floatMsg.classList.add('animate');
-        } else {
-            floatMsg.innerText = "";
-            const frases = resMargarita ? frasesPositivas : frasesNegativas;
-            document.getElementById('final-msg').style.display = 'block';
-            document.getElementById('final-msg').innerHTML = frases[Math.floor(Math.random() * frases.length)];
-        }
-    }
-    initMargarita();
-
-    // 2. Calculadora
-    function calcularAmor() {
-        const n1 = document.getElementById('name1').value.trim().toLowerCase();
-        const n2 = document.getElementById('name2').value.trim().toLowerCase();
-        const r = document.getElementById('amor-result');
-        if(n1.length < 3 || n2.length < 3) { r.innerHTML = "⚠️ Faltan apellidos"; return; }
-        let suma = 0; const total = n1 + n2;
-        for(let i=0; i<total.length; i++) suma += total.charCodeAt(i);
-        const p = (suma * 7) % 101;
-        let t = "", txt = "", c = "";
-        if (p <= 20) { t="❄️ Frialdad"; txt="Polos opuestos."; c="#a0a0a0"; }
-        else if (p <= 45) { t="🤝 Amigos"; txt="Cariño de amistad."; c="#ff9f43"; }
-        else if (p <= 75) { t="💓 Química"; txt="Puede surgir magia."; c="#feca57"; }
-        else if (p <= 95) { t="💘 Gran Amor"; txt="Compatibilidad alta."; c="#ff6b6b"; }
-        else { t="🔥 ALMAS GEMELAS"; txt="100% Definitivo."; c="#ff4757"; }
-        r.style.color = c;
-        r.innerHTML = `<div style="font-size:3em">${p}%</div><b>${t}</b><br><small>${txt}</small>`;
-    }
-
-    // 3. Péndulo
-    let pAnim = true;
-    function pararPendulo() {
-        const s = document.getElementById('p-string'), btn = document.querySelector('#pendulo .action-btn'), res = document.getElementById('pendulo-result');
-        if(pAnim) {
-            s.style.animationPlayState = 'paused'; pAnim = false; btn.innerText = "Reiniciar";
-            const ans = ["SÍ", "NO", "Tal vez", "Pregunta mañana", "Seguro", "Imposible"];
-            res.innerText = ans[Math.floor(Math.random() * ans.length)];
-        } else {
-            s.style.animationPlayState = 'running'; pAnim = true; btn.innerText = "¡Preguntar!"; res.innerText = "";
-        }
-    }
-
-    // 4. Moneda
-    let anguloMoneda = 0; 
-    function lanzarMoneda() {
-        const coin = document.getElementById('the-coin'), btn = document.getElementById('btn-flip'), msg = document.getElementById('moneda-msg');
-        msg.style.display = 'none'; btn.disabled = true;
-        const esCara = Math.random() < 0.5;
-        anguloMoneda += 1800; 
-        if ((esCara && anguloMoneda % 360 !== 0) || (!esCara && anguloMoneda % 360 === 0)) anguloMoneda += 180;
-        coin.style.transform = `rotateY(${anguloMoneda}deg)`;
-        setTimeout(() => {
-            btn.disabled = false; btn.innerText = "Lanzar otra vez";
-            msg.innerHTML = esCara ? `<strong>¡SÍ! 🌟</strong><br>Si dudas, querías un NO.` : `<strong>NO... 🌑</strong><br>Si te entristece, querías un SÍ.`;
-            msg.style.display = 'block';
-        }, 3000);
-    }
-
-    // 5. Chat
-    function simularChat() {
-        const btn = document.getElementById('btn-chat'), me = document.getElementById('msg-me'), crush = document.getElementById('msg-crush'), typing = document.getElementById('typing-indicator');
-        me.style.display = 'none'; crush.style.display = 'none'; typing.style.display = 'none'; btn.disabled = true;
-        me.style.display = 'block';
-        setTimeout(() => { typing.style.display = 'block'; }, 1000);
-        setTimeout(() => {
-            typing.style.display = 'none'; crush.style.display = 'block'; btn.disabled = false;
-            const resps = ["¡Hola! Pensaba en ti... 😍", "Visto ✔✔", "¿Nos vemos? 🥪", "¿Quién eres? 🤡", "Estoy salvando el mundo 🦸‍♂️", "Solo amigos... 😬", "¡Me encantas! ❤️"];
-            const r = resps[Math.floor(Math.random()*resps.length)];
-            crush.style.color = r.includes("Visto") ? "#aaa" : "#555";
-            crush.innerText = r;
-        }, 3500);
-    }
-
-    // --- 6. EL LÁPIZ ---
-    let lapizAngle = 0;
-    let lapizStep = 0; // 0: Start/First Spin, 1: Second Spin, 2: Reset
-
-    function initLapiz() {
-        lapizStep = 0;
-        lapizAngle = 0;
-        document.getElementById('magic-pencil').style.transform = `rotate(0deg)`;
-        document.getElementById('lapiz-instruction').innerHTML = "Poned el móvil en el centro.<br>Gira para elegir a la primera persona.";
-        document.getElementById('lapiz-result').style.display = 'none';
-        document.getElementById('btn-lapiz').innerText = "¡Girar!";
-    }
-
-    function giraLapiz() {
-        const pencil = document.getElementById('magic-pencil');
-        const instruction = document.getElementById('lapiz-instruction');
-        const result = document.getElementById('lapiz-result');
-        const btn = document.getElementById('btn-lapiz');
-
-        if (lapizStep === 2) {
-            initLapiz();
-            return;
-        }
-
-        btn.disabled = true;
-        
-        // Calcular giro aleatorio (mínimo 2 vueltas)
-        const randomSpin = 720 + Math.random() * 360;
-        lapizAngle += randomSpin;
-        
-        pencil.style.transform = `rotate(${lapizAngle}deg)`;
-
-        // Esperar animación
-        setTimeout(() => {
-            btn.disabled = false;
-            if (lapizStep === 0) {
-                instruction.innerText = "¡Tenemos al primero! Ahora gira para ver con quién le toca...";
-                btn.innerText = "Girar de nuevo";
-                lapizStep = 1;
-            } else if (lapizStep === 1) {
-                instruction.innerText = "¡La suerte está echada!";
-                result.style.display = 'block';
-                const acciones = ["¡Un Beso! 💋", "¡Un Abrazo! 🤗", "¡Beso en la mejilla! 😘", "¡Abrazo de oso! 🐻"];
-                result.innerHTML = `<span style="font-size:1.5em; color:#ff6b6b; font-weight:bold;">${acciones[Math.floor(Math.random()*acciones.length)]}</span>`;
-                btn.innerText = "Jugar otra vez";
-                lapizStep = 2;
-            }
-        }, 3000);
-    }
-
-    // --- TAROT & DB MASIVA ---
+    // --- 1. DATOS (SE CARGAN PRIMERO) ---
+    
+    // TAROT
     const TAROT_CARTAS = [
         { id:1, emoji:"⭐", nombre:"La Estrella", frases:{tu_vibe:"Brillas con luz propia.", impulso:"claridad mental te guiará", destino:"un deseo se cumplirá."} },
         { id:2, emoji:"❤️", nombre:"El Amor", frases:{tu_vibe:"Tu corazón vibra alto.", impulso:"el cariño será tu motor", destino:"encontrarás armonía."} },
@@ -653,7 +505,7 @@
         { id:12, emoji:"🌺", nombre:"Amistad", frases:{tu_vibe:"Valoras la lealtad.", impulso:"apoyarte en tu mejor amigo", destino:"un vínculo para siempre."} }
     ];
 
-    // DB CONSEJOS SABIOS (220 COMBINACIONES)
+    // CONSEJOS SABIOS
     const CONSEJOS_SABIOS_COMPLETO = {
         "1-2-3": { titulo: "El Camino del Amor Destinado", texto: "Los sabios observan en tus cartas una alineación perfecta: tus sueños (⭐) se entrelazan con el amor (❤️) y el éxito (🎯). Este es un momento único donde tu corazón y tus metas caminan juntos. No temas seguir tus sentimientos, porque el universo conspira para que triunfes en el amor." },
         "1-2-4": { titulo: "La Estrella Amorosa de la Felicidad", texto: "Los sabios ven un futuro radiante donde la esperanza (⭐), el amor (❤️) y la alegría (🌈) se unen. Tu optimismo y corazón abierto atraerán momentos hermosos. Alguien especial entrará en tu vida trayendo risas y días llenos de luz." },
@@ -877,8 +729,445 @@
         "10-11-12": { titulo: "El Milagro de la Conexión Destinada", texto: "Magia (💫), sorpresa (🎁) y amistad (🌺): conocerás a alguien mágico. Conexión inexplicable destinada. Amistad sorpresa trascendental." }
     };
 
-    let tarotState = { semanal: [], sabio: [] };
+    // --- 7. VERDAD O RETO (MASIVO Y MEJORADO) ---
+    const VOR_VERDADES = [
+        "¿Quién de aquí te cae mejor? (Sin decir nombres, descríbelo)",
+        "¿Cuál es tu mayor secreto del colegio?",
+        "¿Has stalkeado a alguien hoy? ¿A quién?",
+        "¿Cuál es el último mensaje que enviaste? Léelo.",
+        "¿Qué es lo más vergonzoso que te ha pasado en público?",
+        "¿Quién es tu crush famoso?",
+        "¿Alguna vez has copiado en un examen?",
+        "¿Si fueras invisible por una hora, qué harías?",
+        "¿Qué rumor has escuchado últimamente?",
+        "¿Si tuvieras que besar a alguien de esta sala, a quién sería?",
+        "¿Cuál es tu peor hábito?",
+        "¿Qué harías si te ganaras la lotería?",
+        "¿Te has enamorado de algún profesor/a?",
+        "¿Cuál es tu foto más vergonzosa en el móvil? Muéstrala.",
+        "¿Has mentido a tus padres esta semana? ¿Sobre qué?",
+        "¿Qué es lo más raro que has comido?",
+        "¿Alguna vez has fingido estar enfermo para no ir a clase?",
+        "¿Quién fue tu primer crush?",
+        "¿Qué nombre te pondrías si pudieras cambiarlo?",
+        "¿Cuál es tu mayor miedo irracional?",
+        "¿Qué es lo que más te molesta de tus amigos?",
+        "¿Has leído el diario de alguien sin permiso?",
+        "¿Cuál es el sueño más extraño que has tenido?",
+        "¿Qué superpoder te gustaría tener y por qué?",
+        "¿Alguna vez has roto algo y has culpado a otra persona?",
+        "¿Qué canción te da vergüenza admitir que te gusta?",
+        "¿Si pudieras intercambiar vidas con alguien de aquí, con quién sería?",
+        "¿Qué es lo peor que has hecho en redes sociales?",
+        "¿Te has quedado dormido en clase alguna vez?",
+        "¿Cuál es la mentira más grande que has contado y te han creído?",
+        "¿Si fueras un animal, cuál serías?",
+        "¿Qué es lo que más te gusta de ti mismo?",
+        "¿Qué es lo que menos te gusta de ti mismo?",
+        "¿Si pudieras viajar en el tiempo, a dónde irías?",
+        "¿Cuál es tu película favorita que has visto mil veces?",
+        "¿Quién es la persona más divertida que conoces?",
+        "¿Qué harías si fueras presidente por un día?",
+        "¿Has enviado un mensaje a la persona equivocada? ¿Qué decía?",
+        "¿Te has reído en un momento muy inapropiado?",
+        "¿Cuál es tu comida favorita que podrías comer todos los días?",
+        "¿Si tuvieras que vivir en una isla desierta con alguien de aquí, a quién elegirías?",
+        "¿Cuál es el regalo más feo que te han hecho?",
+        "¿Qué es lo más valiente que has hecho?",
+        "¿Alguna vez has espiado a tus vecinos?",
+        "¿Qué es lo que más te hace reír?",
+        "¿Si pudieras tener un deseo ahora mismo, cuál sería?",
+        "¿Cuál es tu videojuego favorito?",
+        "¿Has tenido un amigo imaginario?",
+        "¿Qué es lo más asqueroso que has tocado?",
+        "¿Te gustaría ser famoso? ¿Por qué?",
+        "¿Cuál es tu asignatura favorita y por qué?",
+        "¿Has hecho trampa en un juego de mesa?",
+        "¿Qué es lo primero que harías si fueras adulto?",
+        "¿Si fueras un color, cuál serías?",
+        "¿Cuál es tu lugar favorito en el mundo?",
+        "¿Qué es lo que más te gusta hacer en tu tiempo libre?",
+        "¿Si pudieras conocer a cualquier persona del mundo, viva o muerta, a quién sería?",
+        "¿Qué es lo más loco que has hecho por un reto?",
+        "¿Te has caído en público de forma graciosa?",
+        "¿Cuál es tu emoji más usado?",
+        "¿Qué harías si te encontraras un extraterrestre?",
+        "¿Si pudieras volar, a dónde irías primero?",
+        "¿Qué es lo que más te gusta de tu mejor amigo/a?",
+        "¿Has tenido un mal corte de pelo alguna vez?",
+        "¿Cuál es tu serie de dibujos animados favorita?",
+        "¿Si pudieras inventar algo, qué sería?",
+        "¿Qué es lo más raro que tienes en tu habitación?",
+        "¿Te has asustado con tu propia sombra?",
+        "¿Cuál es tu palabra favorita?",
+        "¿Si fueras un sabor de helado, cuál serías?",
+        "¿Qué es lo que más te gustaría aprender a hacer?",
+        "¿Alguna vez has hablado solo en voz alta?",
+        "¿Qué es lo más bonito que alguien ha hecho por ti?",
+        "¿Si fueras un personaje de libro, quién serías?",
+        "¿Qué es lo que más te da pereza hacer?",
+        "¿Has llorado viendo una película? ¿Cuál?",
+        "¿Qué es lo más divertido que te ha pasado en un viaje?",
+        "¿Si pudieras tener cualquier mascota (incluso salvaje), cuál sería?",
+        "¿Qué es lo que más te gusta de tu familia?",
+        "¿Has tenido un sueño que se ha hecho realidad?",
+        "¿Qué es lo más extraño que has buscado en Google?",
+        "¿Si fueras un youtuber, de qué trataría tu canal?",
+        "¿Qué es lo que más te gusta de tu colegio?",
+        "¿Alguna vez has perdido algo importante y no lo has dicho?",
+        "¿Qué es lo más picante que has comido?",
+        "¿Si pudieras cambiar una cosa del mundo, qué sería?",
+        "¿Qué es lo que más te hace feliz?",
+        "¿Has tenido una pesadilla que recuerdes muy bien?",
+        "¿Qué es lo más creativo que has hecho?",
+        "¿Si fueras un superhéroe, cuál sería tu nombre?",
+        "¿Qué es lo que más te gusta de tus amigos?",
+        "¿Alguna vez has ganado un concurso?",
+        "¿Qué es lo más interesante que has aprendido recientemente?",
+        "¿Si pudieras hablar con los animales, qué les dirías?",
+        "¿Qué es lo que más te gustaría visitar en el espacio?",
+        "¿Has hecho alguna vez una broma telefónica?",
+        "¿Qué es lo que más te gusta de la naturaleza?",
+        "¿Si fueras un inventor, qué invento eliminarías?",
+        "¿Qué es lo más importante para ti en una amistad?",
+        "¿Has ayudado a alguien desconocido alguna vez?"
+    ];
 
+    const VOR_RETOS = [
+        "Haz un baile de TikTok sin música.",
+        "Habla con acento extranjero hasta tu próximo turno.",
+        "Manda un emoji random a tu última conversación de WhatsApp.",
+        "Deja que el grupo te peine como quiera.",
+        "Imita a un profesor del colegio.",
+        "Canta el estribillo de tu canción favorita a gritos.",
+        "Camina como un cangrejo por la habitación.",
+        "Haz 10 sentadillas mientras dices nombres de frutas.",
+        "Abraza a la persona de tu izquierda.",
+        "Hazte una selfie poniendo cara rara y no la borres en 5 min.",
+        "Deja que alguien te escriba algo en el brazo con boli.",
+        "Imita a un animal y que los demás adivinen cuál es.",
+        "Di el abecedario al revés lo más rápido que puedas.",
+        "Intenta lamerte el codo.",
+        "Grita '¡Amo el brócoli!' por la ventana.",
+        "Haz una imitación de alguien del grupo.",
+        "Camina hacia atrás hasta tu próximo turno.",
+        "Habla sin mover los labios durante 1 minuto.",
+        "Haz como si estuvieras nadando en el suelo.",
+        "Deja que alguien te haga cosquillas durante 10 segundos.",
+        "Canta una canción infantil con voz de ópera.",
+        "Haz una cara graciosa y manténla hasta que alguien se ría.",
+        "Baila como un robot.",
+        "Di un trabalenguas rápido sin equivocarte.",
+        "Haz como si fueras un bebé llorando.",
+        "Da 5 vueltas sobre ti mismo y luego intenta caminar en línea recta.",
+        "Habla con una voz muy aguda durante 2 turnos.",
+        "Haz una pose de modelo y que alguien te haga una foto.",
+        "Imita a un mono comiendo una banana.",
+        "Dile un cumplido a cada persona del grupo.",
+        "Haz el sonido de 3 animales diferentes.",
+        "Intenta tocar tu nariz con la lengua.",
+        "Haz como si estuvieras en una montaña rusa.",
+        "Cuenta un chiste malo.",
+        "Haz una estatua y no te muevas durante 30 segundos.",
+        "Imita a tu cantante favorito.",
+        "Haz como si estuvieras bajo el agua.",
+        "Baila la macarena.",
+        "Haz una mueca horrible.",
+        "Habla muy lento como si fueras una tortuga.",
+        "Haz como si estuvieras comiendo un limón muy ácido.",
+        "Imita a un presentador de noticias.",
+        "Haz el paso de la luna (moonwalk).",
+        "Haz como si fueras un zombie.",
+        "Canta el cumpleaños feliz a alguien del grupo.",
+        "Haz una reverencia a cada persona de la sala.",
+        "Haz como si estuvieras tocando la guitarra invisible.",
+        "Imita a un gato ronroneando.",
+        "Haz una cara de sorpresa exagerada.",
+        "Camina como si tuvieras zapatos gigantes.",
+        "Haz como si estuvieras levantando pesas muy pesadas.",
+        "Imita a un perro ladrando a un cartero.",
+        "Haz como si estuvieras comiendo spaghetti invisible.",
+        "Baila como si nadie te estuviera viendo.",
+        "Haz una imitación de un personaje de dibujos animados.",
+        "Habla como un pirata.",
+        "Haz como si fueras un fantasma asustando a alguien.",
+        "Imita a un bebé gateando.",
+        "Haz una cara de enfado muy exagerada.",
+        "Camina como un pingüino.",
+        "Haz como si estuvieras conduciendo un coche de carreras.",
+        "Imita a un pájaro volando.",
+        "Haz una cara de felicidad extrema.",
+        "Habla con la lengua fuera.",
+        "Haz como si estuvieras esquiando.",
+        "Imita a un león rugiendo.",
+        "Haz una cara de miedo.",
+        "Camina como un gigante.",
+        "Haz como si estuvieras tocando el piano.",
+        "Imita a una gallina poniendo un huevo.",
+        "Haz una cara de asco.",
+        "Habla susurrando hasta tu próximo turno.",
+        "Haz como si estuvieras jugando al tenis.",
+        "Imita a un pez fuera del agua.",
+        "Haz una cara de sueño.",
+        "Camina de puntillas por toda la habitación.",
+        "Haz como si estuvieras montando a caballo.",
+        "Imita a un elefante con tu brazo.",
+        "Haz una cara de confusión.",
+        "Habla cantando todo lo que digas.",
+        "Haz como si estuvieras jugando al baloncesto.",
+        "Imita a una serpiente siseando.",
+        "Haz una cara de amor.",
+        "Salta a la pata coja 10 veces.",
+        "Haz como si estuvieras patinando sobre hielo.",
+        "Imita a un oso gruñendo.",
+        "Haz una cara de aburrimiento.",
+        "Haz el sonido de una sirena de ambulancia.",
+        "Haz como si estuvieras remando en una barca.",
+        "Imita a un conejo saltando.",
+        "Haz una cara de dolor (fingido).",
+        "Aplaude con los pies (si puedes).",
+        "Haz como si estuvieras escalando una montaña.",
+        "Imita a un búho.",
+        "Haz una cara de victoria.",
+        "Gira la cabeza como si estuvieras mareado.",
+        "Haz como si estuvieras pescando.",
+        "Imita a una rana croando.",
+        "Haz una cara de inteligencia.",
+        "Di tu nombre al revés."
+    ];
+
+    // --- VARIABLES DE ESTADO ---
+    let tarotState = { semanal: [], sabio: [] };
+    let arrowAngle = 0;
+    let lastArrowFinalAngle = 0; // Control de repetición para la flecha
+    let lapizAngle = 0;
+    let lapizStep = 0;
+    let petalosRestantes = 12;
+    let resMargarita = true;
+    let anguloMoneda = 0;
+    let pAnim = true; // Péndulo
+
+    // --- FUNCIONES ---
+
+    // NAVEGACIÓN
+    function showGame(id) {
+        document.getElementById('home-menu').style.display = 'none';
+        document.querySelectorAll('.game-section').forEach(d => d.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('back-btn').style.display = 'flex';
+        document.getElementById('site-title').style.fontSize = '1.2em';
+    }
+
+    function goHome() {
+        document.querySelectorAll('.game-section').forEach(d => d.classList.remove('active'));
+        document.getElementById('home-menu').style.display = 'grid';
+        document.getElementById('back-btn').style.display = 'none';
+        document.getElementById('site-title').style.fontSize = '1.8em';
+        
+        // Detener música
+        const audio = document.getElementById('audio-cartero');
+        if(audio) { audio.pause(); audio.currentTime = 0; }
+    }
+
+    // MARGARITA
+    function initMargarita() {
+        const garden = document.getElementById('flower-garden');
+        const finalMsg = document.getElementById('final-msg');
+        document.querySelectorAll('.petal').forEach(p => p.remove());
+        finalMsg.style.display = 'none'; finalMsg.innerHTML = '';
+        resMargarita = Math.random() < 0.5; 
+        petalosRestantes = 12;
+        const angleStep = 360 / 12;
+        const corazonesFlotantes = ["💖", "✨❤️✨", "💕", "💓✨", "💝", "💗"];
+        
+        for (let i = 0; i < 12; i++) {
+            const petal = document.createElement('div');
+            petal.classList.add('petal');
+            const rotacion = i * angleStep;
+            petal.style.transform = `rotate(${rotacion}deg)`;
+            petal.style.setProperty('--rot', `${rotacion}deg`);
+            petal.onclick = function() { 
+                if(this.classList.contains('falling')) return;
+                this.classList.add('falling');
+                petalosRestantes--;
+                const floatMsg = document.getElementById('float-msg');
+                if (petalosRestantes > 0) {
+                    floatMsg.innerText = corazonesFlotantes[Math.floor(Math.random() * corazonesFlotantes.length)];
+                    floatMsg.classList.remove('animate'); void floatMsg.offsetWidth; floatMsg.classList.add('animate');
+                } else {
+                    floatMsg.innerText = "";
+                    const frasesPositivas = ["¡Te quiere con locura! 😍", "Eres su crush secreto 🤫", "Te invitará a salir pronto 🎬", "Sueña contigo cada noche 🌙", "¡Amor Verdadero! ❤️"];
+                    const frasesNegativas = ["Solo te ve como amiga/o 😢", "Le gusta otra persona 💔", "Mejor olvídalo... 🌬️", "Te ve como hermana/o 😬", "No es para ti 🚫"];
+                    const frases = resMargarita ? frasesPositivas : frasesNegativas;
+                    document.getElementById('final-msg').style.display = 'block';
+                    document.getElementById('final-msg').innerHTML = frases[Math.floor(Math.random() * frases.length)];
+                }
+            };
+            garden.appendChild(petal);
+        }
+    }
+
+    // CALCULADORA
+    function calcularAmor() {
+        const n1 = document.getElementById('name1').value.trim().toLowerCase();
+        const n2 = document.getElementById('name2').value.trim().toLowerCase();
+        const r = document.getElementById('amor-result');
+        if(n1.length < 3 || n2.length < 3) { r.innerHTML = "⚠️ Faltan apellidos"; return; }
+        let suma = 0; const total = n1 + n2;
+        for(let i=0; i<total.length; i++) suma += total.charCodeAt(i);
+        const p = (suma * 7) % 101;
+        let t = "", txt = "", c = "";
+        if (p <= 20) { t="❄️ Frialdad"; txt="Polos opuestos."; c="#a0a0a0"; }
+        else if (p <= 45) { t="🤝 Amigos"; txt="Cariño de amistad."; c="#ff9f43"; }
+        else if (p <= 75) { t="💓 Química"; txt="Puede surgir magia."; c="#feca57"; }
+        else if (p <= 95) { t="💘 Gran Amor"; txt="Compatibilidad alta."; c="#ff6b6b"; }
+        else { t="🔥 ALMAS GEMELAS"; txt="100% Definitivo."; c="#ff4757"; }
+        r.style.color = c;
+        r.innerHTML = `<div style="font-size:3em">${p}%</div><b>${t}</b><br><small>${txt}</small>`;
+    }
+
+    // PÉNDULO
+    function pararPendulo() {
+        const s = document.getElementById('p-string'), btn = document.querySelector('#pendulo .action-btn'), res = document.getElementById('pendulo-result');
+        if(pAnim) {
+            s.style.animationPlayState = 'paused'; pAnim = false; btn.innerText = "Reiniciar";
+            const ans = ["SÍ", "NO", "Tal vez", "Pregunta mañana", "Seguro", "Imposible"];
+            res.innerText = ans[Math.floor(Math.random() * ans.length)];
+        } else {
+            s.style.animationPlayState = 'running'; pAnim = true; btn.innerText = "¡Preguntar!"; res.innerText = "";
+        }
+    }
+
+    // MONEDA
+    function lanzarMoneda() {
+        const coin = document.getElementById('the-coin'), btn = document.getElementById('btn-flip'), msg = document.getElementById('moneda-msg');
+        msg.style.display = 'none'; btn.disabled = true;
+        const esCara = Math.random() < 0.5;
+        anguloMoneda += 1800; 
+        if ((esCara && anguloMoneda % 360 !== 0) || (!esCara && anguloMoneda % 360 === 0)) anguloMoneda += 180;
+        coin.style.transform = `rotateY(${anguloMoneda}deg)`;
+        setTimeout(() => {
+            btn.disabled = false; btn.innerText = "Lanzar otra vez";
+            msg.innerHTML = esCara ? `<strong>¡SÍ! 🌟</strong><br>Si dudas, querías un NO.` : `<strong>NO... 🌑</strong><br>Si te entristece, querías un SÍ.`;
+            msg.style.display = 'block';
+        }, 3000);
+    }
+
+    // CHAT
+    function simularChat() {
+        const btn = document.getElementById('btn-chat'), me = document.getElementById('msg-me'), crush = document.getElementById('msg-crush'), typing = document.getElementById('typing-indicator');
+        me.style.display = 'none'; crush.style.display = 'none'; typing.style.display = 'none'; btn.disabled = true;
+        me.style.display = 'block';
+        setTimeout(() => { typing.style.display = 'block'; }, 1000);
+        setTimeout(() => {
+            typing.style.display = 'none'; crush.style.display = 'block'; btn.disabled = false;
+            const resps = ["¡Hola! Pensaba en ti... 😍", "Visto ✔✔", "¿Nos vemos? 🥪", "¿Quién eres? 🤡", "Estoy salvando el mundo 🦸‍♂️", "Solo amigos... 😬", "¡Me encantas! ❤️"];
+            const r = resps[Math.floor(Math.random()*resps.length)];
+            crush.style.color = r.includes("Visto") ? "#aaa" : "#555";
+            crush.innerText = r;
+        }, 3500);
+    }
+
+    // EL LÁPIZ
+    function initLapiz() {
+        lapizStep = 0;
+        lapizAngle = 0;
+        document.getElementById('magic-pencil').style.transform = `rotate(0deg)`;
+        document.getElementById('lapiz-instruction').innerHTML = "Poned el móvil en el centro.<br>Gira para elegir a la primera persona.";
+        document.getElementById('lapiz-result').style.display = 'none';
+        document.getElementById('btn-lapiz').innerText = "¡Girar!";
+    }
+
+    function giraLapiz() {
+        const pencil = document.getElementById('magic-pencil');
+        const instruction = document.getElementById('lapiz-instruction');
+        const result = document.getElementById('lapiz-result');
+        const btn = document.getElementById('btn-lapiz');
+
+        if (lapizStep === 2) {
+            initLapiz();
+            return;
+        }
+
+        btn.disabled = true;
+        const randomSpin = 720 + Math.random() * 360;
+        lapizAngle += randomSpin;
+        pencil.style.transform = `rotate(${lapizAngle}deg)`;
+
+        setTimeout(() => {
+            btn.disabled = false;
+            if (lapizStep === 0) {
+                instruction.innerText = "¡Tenemos al primero! Ahora gira para ver con quién le toca...";
+                btn.innerText = "Girar de nuevo";
+                lapizStep = 1;
+            } else if (lapizStep === 1) {
+                instruction.innerText = "¡La suerte está echada!";
+                result.style.display = 'block';
+                const acciones = ["¡Un Beso! 💋", "¡Un Abrazo! 🤗", "¡Beso en la mejilla! 😘", "¡Abrazo de oso! 🐻"];
+                result.innerHTML = `<span style="font-size:1.5em; color:#ff6b6b; font-weight:bold;">${acciones[Math.floor(Math.random()*acciones.length)]}</span>`;
+                btn.innerText = "Jugar otra vez";
+                lapizStep = 2;
+            }
+        }, 3000);
+    }
+
+    // VERDAD O RETO
+    function resetVor() {
+        document.getElementById('vor-instruction').innerText = "Gira la flecha para ver a quién le toca.";
+        document.getElementById('vor-actions').style.display = 'none';
+        document.getElementById('vor-result').style.display = 'none';
+        document.getElementById('btn-vor-spin').style.display = 'block';
+        document.getElementById('btn-vor-reset').style.display = 'none';
+    }
+
+    function giraFlecha() {
+        const arrow = document.getElementById('magic-arrow');
+        const btn = document.getElementById('btn-vor-spin');
+        
+        btn.disabled = true;
+        
+        let spin, finalAngleMod;
+        let attempts = 0;
+        
+        do {
+            spin = 1080 + Math.random() * 720; 
+            finalAngleMod = (arrowAngle + spin) % 360;
+            var diff = Math.abs(finalAngleMod - lastArrowFinalAngle);
+            if (diff > 180) diff = 360 - diff; 
+            attempts++;
+        } while (diff < 45 && attempts < 10);
+        
+        arrowAngle += spin;
+        lastArrowFinalAngle = finalAngleMod;
+        arrow.style.transform = `rotate(${arrowAngle}deg)`;
+
+        setTimeout(() => {
+            document.getElementById('vor-instruction').innerText = "¡Tú! Elige tu destino:";
+            btn.style.display = 'none';
+            btn.disabled = false;
+            document.getElementById('vor-actions').style.display = 'flex';
+        }, 2600);
+    }
+
+    function jugarVor(tipo) {
+        const resultCard = document.getElementById('vor-result');
+        const content = tipo === 'verdad' ? VOR_VERDADES : VOR_RETOS;
+        const texto = content[Math.floor(Math.random() * content.length)];
+        
+        document.getElementById('vor-actions').style.display = 'none';
+        
+        resultCard.className = `vor-card border-${tipo}`;
+        resultCard.innerHTML = `
+            <strong style="color: ${tipo === 'verdad' ? '#0984e3' : '#d63031'}">
+                ${tipo === 'verdad' ? 'VERDAD 😇' : 'RETO 😈'}
+            </strong><br><br>
+            ${texto}
+        `;
+        resultCard.style.display = 'block';
+        document.getElementById('btn-vor-reset').style.display = 'block';
+    }
+
+    // TAROT LOGIC
     function verTarot(sub) {
         document.querySelectorAll('.tarot-content').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tarot-btn').forEach(b => b.classList.remove('active'));
@@ -891,10 +1180,13 @@
 
     function initTarotGame(tipo) {
         const container = document.getElementById(`cards-${tipo}`);
+        if(!container) return; // Safety check
         container.innerHTML = '';
         tarotState[tipo] = [];
-        document.getElementById(`result-${tipo}`).classList.remove('show');
-        document.getElementById(`btn-${tipo}`).style.display = 'none';
+        const resDiv = document.getElementById(`result-${tipo}`);
+        if(resDiv) resDiv.classList.remove('show');
+        const btn = document.getElementById(`btn-${tipo}`);
+        if(btn) btn.style.display = 'none';
 
         const mazo = [...TAROT_CARTAS].sort(() => Math.random() - 0.5);
         
@@ -940,14 +1232,12 @@
     }
 
     function mostrarSabio() {
-        // Ordenar IDs para crear la llave única (ej: "1-5-12")
         const ids = tarotState.sabio.map(c => c.id).sort((a,b) => a-b);
         const key = ids.join('-');
         
-        // Buscar en la DB gigante
         const consejo = CONSEJOS_SABIOS_COMPLETO[key] || {
             titulo: "El Misterio de los Sabios",
-            texto: "Una combinación extraña ha aparecido. Los sabios guardan silencio, lo que significa que debes confiar en tu propia intuición."
+            texto: "Los sabios guardan silencio por ahora. Confía en tu intuición."
         };
 
         const div = document.getElementById('result-sabio');
@@ -963,12 +1253,17 @@
 
     function resetTarot(tipo) { initTarotGame(tipo); }
 
-    // Inicializar Tarot y Galería
-    initTarotGame('semanal');
-    initTarotGame('sabio');
-    const gal = document.getElementById('gallery-container');
-    TAROT_CARTAS.forEach(c => {
-        gal.innerHTML += `<div class="gallery-card"><div class="g-emoji">${c.emoji}</div><div class="g-name">${c.nombre}</div><div class="g-vibe">${c.frases.tu_vibe}</div></div>`;
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        initTarotGame('semanal');
+        initTarotGame('sabio');
+        const gal = document.getElementById('gallery-container');
+        if(gal) {
+            TAROT_CARTAS.forEach(c => {
+                gal.innerHTML += `<div class="gallery-card"><div class="g-emoji">${c.emoji}</div><div class="g-name">${c.nombre}</div><div class="g-vibe">${c.frases.tu_vibe}</div></div>`;
+            });
+        }
+        initMargarita();
     });
 
 </script>
