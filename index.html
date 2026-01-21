@@ -41,6 +41,16 @@
         .cursor-trail { position: fixed; width: 10px; height: 10px; background: rgba(255, 255, 255, 0.8); border-radius: 50%; pointer-events: none; z-index: 9999; animation: fadeOut 1s forwards; }
         @keyframes fadeOut { to { opacity: 0; transform: scale(0); } }
 
+        /* Fuegos Artificiales */
+        .firework {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
         /* --- CONTENEDOR PRINCIPAL --- */
         .container {
             background: var(--glass);
@@ -488,6 +498,19 @@
 </div>
 
 <script>
+    // --- VARIABLES DE ESTADO ---
+    let tarotState = { semanal: [], sabio: [] };
+    let arrowAngle = 0;
+    let lastArrowFinalAngle = 0; // Control de repetición para la flecha
+    let lapizAngle = 0;
+    let lapizStep = 0;
+    let petalosRestantes = 12;
+    let resMargarita = true;
+    let anguloMoneda = 0;
+    let pAnim = true; // Péndulo
+    let vorArrowAngle = 0;
+    let lastVorArrowFinalAngle = 0;
+
     // --- 1. DATOS (SE CARGAN PRIMERO) ---
     
     // TAROT
@@ -532,7 +555,7 @@
         "1-4-7": { titulo: "La Suerte del Soñador Feliz", texto: "Estrella (⭐), alegría (🌈) y suerte (🌟) crean un aura dorada. Tu positividad atrae bendiciones. Las personas felices tienen más suerte porque su energía crea oportunidades. Sigue sonriendo." },
         "1-4-8": { titulo: "El Festival del Alma Soñadora", texto: "Sueños (⭐), alegría (🌈) y diversión (🎪): tu vida debe ser una celebración constante. No esperes ocasiones especiales. Cada día puede ser una fiesta si tú lo decides. Contagia tu alegría al mundo." },
         "1-4-9": { titulo: "El Triunfo del Espíritu Alegre", texto: "Estrella (⭐), alegría (🌈) y triunfo (🏆): ganarás con una sonrisa. Tu actitud positiva es tu mayor ventaja. Mientras otros luchan amargamente, tú conquistarás tus metas con gracia y buen humor." },
-        "1-4-10": { titulo: "La Magia de la Alegría Infinita", texto: "Esperanza (⭐), alegría (🌈) y magia (💫) crean un hechizo de felicidad. Tu capacidad de mantener el optimismo es un poder místico. Tu alegría no depende de lo externo, y eso te hace imparable." },
+        "1-4-10": { titulo: "La Magia del Alegría Infinita", texto: "Esperanza (⭐), alegría (🌈) y magia (💫) crean un hechizo de felicidad. Tu capacidad de mantener el optimismo es un poder místico. Tu alegría no depende de lo externo, y eso te hace imparable." },
         "1-4-11": { titulo: "La Sorpresa que Alegra el Alma", texto: "Sueños (⭐), alegría (🌈) y sorpresa (🎁): algo maravilloso está a punto de suceder. Una noticia inesperada o un regalo del destino que no viste venir. Prepárate para sonreír más que nunca." },
         "1-4-12": { titulo: "La Alegría de la Amistad Verdadera", texto: "Estrella (⭐), alegría (🌈) y amistad (🌺): la verdadera riqueza está en las risas compartidas. Tus amigos son tu tesoro. Cultiva esas relaciones porque son las que hacen que la vida valga la pena." },
         "1-5-6": { titulo: "El Explorador Creativo de Sueños", texto: "Estrella (⭐), creatividad (🎨) y aventura (🚀): los sabios celebran tu espíritu innovador. No solo imaginas mundos nuevos, te atreves a explorarlos. Tu originalidad y valentía te llevarán a crear cosas únicas." },
@@ -730,7 +753,226 @@
         "10-11-12": { titulo: "El Milagro de la Conexión Destinada", texto: "Magia (💫), sorpresa (🎁) y amistad (🌺): conocerás a alguien mágico. Conexión inexplicable destinada. Amistad sorpresa trascendental." }
     };
 
-    // --- 7. VERDAD O RETO (MASIVO Y MEJORADO) ---
+    // --- EFECTO MOUSE ---
+    document.addEventListener('mousemove', function(e){
+        if(Math.random() < 0.85) return;
+        const p = document.createElement('div');
+        p.classList.add('cursor-trail');
+        p.style.left = e.pageX + 'px';
+        p.style.top = e.pageY + 'px';
+        p.style.background = `hsl(${Math.random() * 360}, 100%, 80%)`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1000);
+    });
+
+    // --- NAVEGACIÓN ---
+    function showGame(id) {
+        document.getElementById('home-menu').style.display = 'none';
+        document.querySelectorAll('.game-section').forEach(d => d.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('back-btn').style.display = 'flex';
+        document.getElementById('site-title').style.fontSize = '1.2em';
+    }
+
+    function goHome() {
+        document.querySelectorAll('.game-section').forEach(d => d.classList.remove('active'));
+        document.getElementById('home-menu').style.display = 'grid';
+        document.getElementById('back-btn').style.display = 'none';
+        document.getElementById('site-title').style.fontSize = '1.8em';
+        
+        // Detener música
+        const audio = document.getElementById('audio-cartero');
+        if(audio) { audio.pause(); audio.currentTime = 0; }
+    }
+
+    // --- JUEGOS ORIGINALES (Lógica Intacta) ---
+    // 1. Margarita
+    const frasesPositivas = ["¡Te quiere con locura! 😍", "Eres su crush secreto 🤫", "Te invitará a salir pronto 🎬", "Sueña contigo cada noche 🌙", "¡Amor Verdadero! ❤️"];
+    const frasesNegativas = ["Solo te ve como amiga/o 😢", "Le gusta otra persona 💔", "Mejor olvídalo... 🌬️", "Te ve como hermana/o 😬", "No es para ti 🚫"];
+    const corazonesFlotantes = ["💖", "✨❤️✨", "💕", "💓✨", "💝", "💗"];
+    
+    function initMargarita() {
+        const garden = document.getElementById('flower-garden');
+        const finalMsg = document.getElementById('final-msg');
+        document.querySelectorAll('.petal').forEach(p => p.remove());
+        finalMsg.style.display = 'none'; finalMsg.innerHTML = '';
+        resMargarita = Math.random() < 0.5; 
+        petalosRestantes = 12;
+        const angleStep = 360 / 12;
+        for (let i = 0; i < 12; i++) {
+            const petal = document.createElement('div');
+            petal.classList.add('petal');
+            const rotacion = i * angleStep;
+            petal.style.transform = `rotate(${rotacion}deg)`;
+            petal.style.setProperty('--rot', `${rotacion}deg`);
+            petal.onclick = function() { quitarPetalo(this); };
+            garden.appendChild(petal);
+        }
+    }
+    function quitarPetalo(el) {
+        if(el.classList.contains('falling')) return;
+        el.classList.add('falling');
+        petalosRestantes--;
+        const floatMsg = document.getElementById('float-msg');
+        if (petalosRestantes > 0) {
+            floatMsg.innerText = corazonesFlotantes[Math.floor(Math.random() * corazonesFlotantes.length)];
+            floatMsg.classList.remove('animate'); void floatMsg.offsetWidth; floatMsg.classList.add('animate');
+        } else {
+            floatMsg.innerText = "";
+            const frases = resMargarita ? frasesPositivas : frasesNegativas;
+            document.getElementById('final-msg').style.display = 'block';
+            document.getElementById('final-msg').innerHTML = frases[Math.floor(Math.random() * frases.length)];
+        }
+    }
+
+    // 2. Calculadora
+    function calcularAmor() {
+        const n1 = document.getElementById('name1').value.trim().toLowerCase();
+        const n2 = document.getElementById('name2').value.trim().toLowerCase();
+        const r = document.getElementById('amor-result');
+        if(n1.length < 3 || n2.length < 3) { r.innerHTML = "⚠️ Faltan apellidos"; return; }
+        let suma = 0; const total = n1 + n2;
+        for(let i=0; i<total.length; i++) suma += total.charCodeAt(i);
+        const p = (suma * 7) % 101;
+        let t = "", txt = "", c = "";
+        if (p <= 20) { t="❄️ Frialdad"; txt="Polos opuestos."; c="#a0a0a0"; }
+        else if (p <= 45) { t="🤝 Amigos"; txt="Cariño de amistad."; c="#ff9f43"; }
+        else if (p <= 75) { t="💓 Química"; txt="Puede surgir magia."; c="#feca57"; }
+        else if (p <= 95) { t="💘 Gran Amor"; txt="Compatibilidad alta."; c="#ff6b6b"; }
+        else { t="🔥 ALMAS GEMELAS"; txt="100% Definitivo."; c="#ff4757"; }
+        r.style.color = c;
+        r.innerHTML = `<div style="font-size:3em">${p}%</div><b>${t}</b><br><small>${txt}</small>`;
+
+        // TRIGGER FIREWORKS
+        if (p >= 90) {
+            crearFuegosArtificiales();
+        }
+    }
+
+    function crearFuegosArtificiales() {
+       // Logic to spawn particles
+       const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#ff6b81'];
+       const container = document.querySelector('.container');
+       const rect = container.getBoundingClientRect();
+       
+       // Create 3 bursts
+       for(let b=0; b<3; b++) {
+           setTimeout(() => {
+               const cx = Math.random() * (rect.width * 0.8) + (rect.width * 0.1);
+               const cy = Math.random() * (rect.height * 0.5) + (rect.height * 0.2);
+               
+               for(let i=0; i<30; i++) {
+                   const f = document.createElement('div');
+                   f.className = 'firework';
+                   f.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+                   f.style.left = cx + 'px';
+                   f.style.top = cy + 'px';
+                   container.appendChild(f);
+                   
+                   // Animation via JS
+                   const angle = Math.random() * Math.PI * 2;
+                   const velocity = 30 + Math.random() * 100;
+                   const tx = Math.cos(angle) * velocity;
+                   const ty = Math.sin(angle) * velocity;
+                   
+                   f.animate([
+                       { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                       { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+                   ], {
+                       duration: 800 + Math.random() * 400,
+                       easing: 'cubic-bezier(0, .9, .57, 1)'
+                   }).onfinish = () => f.remove();
+               }
+           }, b * 300);
+       }
+    }
+
+    // 3. Péndulo
+    function pararPendulo() {
+        const s = document.getElementById('p-string'), btn = document.querySelector('#pendulo .action-btn'), res = document.getElementById('pendulo-result');
+        if(pAnim) {
+            s.style.animationPlayState = 'paused'; pAnim = false; btn.innerText = "Reiniciar";
+            const ans = ["SÍ", "NO", "Tal vez", "Pregunta mañana", "Seguro", "Imposible"];
+            res.innerText = ans[Math.floor(Math.random() * ans.length)];
+        } else {
+            s.style.animationPlayState = 'running'; pAnim = true; btn.innerText = "¡Preguntar!"; res.innerText = "";
+        }
+    }
+
+    // 4. Moneda
+    function lanzarMoneda() {
+        const coin = document.getElementById('the-coin'), btn = document.getElementById('btn-flip'), msg = document.getElementById('moneda-msg');
+        msg.style.display = 'none'; btn.disabled = true;
+        const esCara = Math.random() < 0.5;
+        anguloMoneda += 1800; 
+        if ((esCara && anguloMoneda % 360 !== 0) || (!esCara && anguloMoneda % 360 === 0)) anguloMoneda += 180;
+        coin.style.transform = `rotateY(${anguloMoneda}deg)`;
+        setTimeout(() => {
+            btn.disabled = false; btn.innerText = "Lanzar otra vez";
+            msg.innerHTML = esCara ? `<strong>¡SÍ! 🌟</strong><br>Si dudas, querías un NO.` : `<strong>NO... 🌑</strong><br>Si te entristece, querías un SÍ.`;
+            msg.style.display = 'block';
+        }, 3000);
+    }
+
+    // 5. Chat
+    function simularChat() {
+        const btn = document.getElementById('btn-chat'), me = document.getElementById('msg-me'), crush = document.getElementById('msg-crush'), typing = document.getElementById('typing-indicator');
+        me.style.display = 'none'; crush.style.display = 'none'; typing.style.display = 'none'; btn.disabled = true;
+        me.style.display = 'block';
+        setTimeout(() => { typing.style.display = 'block'; }, 1000);
+        setTimeout(() => {
+            typing.style.display = 'none'; crush.style.display = 'block'; btn.disabled = false;
+            const resps = ["¡Hola! Pensaba en ti... 😍", "Visto ✔✔", "¿Nos vemos? 🥪", "¿Quién eres? 🤡", "Estoy salvando el mundo 🦸‍♂️", "Solo amigos... 😬", "¡Me encantas! ❤️"];
+            const r = resps[Math.floor(Math.random()*resps.length)];
+            crush.style.color = r.includes("Visto") ? "#aaa" : "#555";
+            crush.innerText = r;
+        }, 3500);
+    }
+
+    // --- 6. EL LÁPIZ ---
+    function initLapiz() {
+        lapizStep = 0;
+        lapizAngle = 0;
+        document.getElementById('magic-pencil').style.transform = `rotate(0deg)`;
+        document.getElementById('lapiz-instruction').innerHTML = "Poned el móvil en el centro.<br>Gira para elegir a la primera persona.";
+        document.getElementById('lapiz-result').style.display = 'none';
+        document.getElementById('btn-lapiz').innerText = "¡Girar!";
+    }
+
+    function giraLapiz() {
+        const pencil = document.getElementById('magic-pencil');
+        const instruction = document.getElementById('lapiz-instruction');
+        const result = document.getElementById('lapiz-result');
+        const btn = document.getElementById('btn-lapiz');
+
+        if (lapizStep === 2) {
+            initLapiz();
+            return;
+        }
+
+        btn.disabled = true;
+        const randomSpin = 720 + Math.random() * 360;
+        lapizAngle += randomSpin;
+        pencil.style.transform = `rotate(${lapizAngle}deg)`;
+
+        setTimeout(() => {
+            btn.disabled = false;
+            if (lapizStep === 0) {
+                instruction.innerText = "¡Tenemos al primero! Ahora gira para ver con quién le toca...";
+                btn.innerText = "Girar de nuevo";
+                lapizStep = 1;
+            } else if (lapizStep === 1) {
+                instruction.innerText = "¡La suerte está echada!";
+                result.style.display = 'block';
+                const acciones = ["¡Un Beso! 💋", "¡Un Abrazo! 🤗", "¡Beso en la mejilla! 😘", "¡Abrazo de oso! 🐻"];
+                result.innerHTML = `<span style="font-size:1.5em; color:#ff6b6b; font-weight:bold;">${acciones[Math.floor(Math.random()*acciones.length)]}</span>`;
+                btn.innerText = "Jugar otra vez";
+                lapizStep = 2;
+            }
+        }, 3000);
+    }
+
+    // --- 7. VERDAD O RETO ---
     const VOR_VERDADES = [
         "¿Quién de aquí te cae mejor? (Sin decir nombres, descríbelo)",
         "¿Cuál es tu mayor secreto del colegio?",
@@ -937,182 +1179,6 @@
         "Di tu nombre al revés."
     ];
 
-    // --- VARIABLES DE ESTADO ---
-    let tarotState = { semanal: [], sabio: [] };
-    let arrowAngle = 0;
-    let lastArrowFinalAngle = 0; // Control de repetición para la flecha
-    let lapizAngle = 0;
-    let lapizStep = 0;
-    let petalosRestantes = 12;
-    let resMargarita = true;
-    let anguloMoneda = 0;
-    let pAnim = true; // Péndulo
-
-    // --- FUNCIONES ---
-
-    // NAVEGACIÓN
-    function showGame(id) {
-        document.getElementById('home-menu').style.display = 'none';
-        document.querySelectorAll('.game-section').forEach(d => d.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.getElementById('back-btn').style.display = 'flex';
-        document.getElementById('site-title').style.fontSize = '1.2em';
-    }
-
-    function goHome() {
-        document.querySelectorAll('.game-section').forEach(d => d.classList.remove('active'));
-        document.getElementById('home-menu').style.display = 'grid';
-        document.getElementById('back-btn').style.display = 'none';
-        document.getElementById('site-title').style.fontSize = '1.8em';
-        
-        // Detener música
-        const audio = document.getElementById('audio-cartero');
-        if(audio) { audio.pause(); audio.currentTime = 0; }
-    }
-
-    // MARGARITA
-    function initMargarita() {
-        const garden = document.getElementById('flower-garden');
-        const finalMsg = document.getElementById('final-msg');
-        document.querySelectorAll('.petal').forEach(p => p.remove());
-        finalMsg.style.display = 'none'; finalMsg.innerHTML = '';
-        resMargarita = Math.random() < 0.5; 
-        petalosRestantes = 12;
-        const angleStep = 360 / 12;
-        const corazonesFlotantes = ["💖", "✨❤️✨", "💕", "💓✨", "💝", "💗"];
-        
-        for (let i = 0; i < 12; i++) {
-            const petal = document.createElement('div');
-            petal.classList.add('petal');
-            const rotacion = i * angleStep;
-            petal.style.transform = `rotate(${rotacion}deg)`;
-            petal.style.setProperty('--rot', `${rotacion}deg`);
-            petal.onclick = function() { 
-                if(this.classList.contains('falling')) return;
-                this.classList.add('falling');
-                petalosRestantes--;
-                const floatMsg = document.getElementById('float-msg');
-                if (petalosRestantes > 0) {
-                    floatMsg.innerText = corazonesFlotantes[Math.floor(Math.random() * corazonesFlotantes.length)];
-                    floatMsg.classList.remove('animate'); void floatMsg.offsetWidth; floatMsg.classList.add('animate');
-                } else {
-                    floatMsg.innerText = "";
-                    const frasesPositivas = ["¡Te quiere con locura! 😍", "Eres su crush secreto 🤫", "Te invitará a salir pronto 🎬", "Sueña contigo cada noche 🌙", "¡Amor Verdadero! ❤️"];
-                    const frasesNegativas = ["Solo te ve como amiga/o 😢", "Le gusta otra persona 💔", "Mejor olvídalo... 🌬️", "Te ve como hermana/o 😬", "No es para ti 🚫"];
-                    const frases = resMargarita ? frasesPositivas : frasesNegativas;
-                    document.getElementById('final-msg').style.display = 'block';
-                    document.getElementById('final-msg').innerHTML = frases[Math.floor(Math.random() * frases.length)];
-                }
-            };
-            garden.appendChild(petal);
-        }
-    }
-
-    // CALCULADORA
-    function calcularAmor() {
-        const n1 = document.getElementById('name1').value.trim().toLowerCase();
-        const n2 = document.getElementById('name2').value.trim().toLowerCase();
-        const r = document.getElementById('amor-result');
-        if(n1.length < 3 || n2.length < 3) { r.innerHTML = "⚠️ Faltan apellidos"; return; }
-        let suma = 0; const total = n1 + n2;
-        for(let i=0; i<total.length; i++) suma += total.charCodeAt(i);
-        const p = (suma * 7) % 101;
-        let t = "", txt = "", c = "";
-        if (p <= 20) { t="❄️ Frialdad"; txt="Polos opuestos."; c="#a0a0a0"; }
-        else if (p <= 45) { t="🤝 Amigos"; txt="Cariño de amistad."; c="#ff9f43"; }
-        else if (p <= 75) { t="💓 Química"; txt="Puede surgir magia."; c="#feca57"; }
-        else if (p <= 95) { t="💘 Gran Amor"; txt="Compatibilidad alta."; c="#ff6b6b"; }
-        else { t="🔥 ALMAS GEMELAS"; txt="100% Definitivo."; c="#ff4757"; }
-        r.style.color = c;
-        r.innerHTML = `<div style="font-size:3em">${p}%</div><b>${t}</b><br><small>${txt}</small>`;
-    }
-
-    // PÉNDULO
-    function pararPendulo() {
-        const s = document.getElementById('p-string'), btn = document.querySelector('#pendulo .action-btn'), res = document.getElementById('pendulo-result');
-        if(pAnim) {
-            s.style.animationPlayState = 'paused'; pAnim = false; btn.innerText = "Reiniciar";
-            const ans = ["SÍ", "NO", "Tal vez", "Pregunta mañana", "Seguro", "Imposible"];
-            res.innerText = ans[Math.floor(Math.random() * ans.length)];
-        } else {
-            s.style.animationPlayState = 'running'; pAnim = true; btn.innerText = "¡Preguntar!"; res.innerText = "";
-        }
-    }
-
-    // MONEDA
-    function lanzarMoneda() {
-        const coin = document.getElementById('the-coin'), btn = document.getElementById('btn-flip'), msg = document.getElementById('moneda-msg');
-        msg.style.display = 'none'; btn.disabled = true;
-        const esCara = Math.random() < 0.5;
-        anguloMoneda += 1800; 
-        if ((esCara && anguloMoneda % 360 !== 0) || (!esCara && anguloMoneda % 360 === 0)) anguloMoneda += 180;
-        coin.style.transform = `rotateY(${anguloMoneda}deg)`;
-        setTimeout(() => {
-            btn.disabled = false; btn.innerText = "Lanzar otra vez";
-            msg.innerHTML = esCara ? `<strong>¡SÍ! 🌟</strong><br>Si dudas, querías un NO.` : `<strong>NO... 🌑</strong><br>Si te entristece, querías un SÍ.`;
-            msg.style.display = 'block';
-        }, 3000);
-    }
-
-    // CHAT
-    function simularChat() {
-        const btn = document.getElementById('btn-chat'), me = document.getElementById('msg-me'), crush = document.getElementById('msg-crush'), typing = document.getElementById('typing-indicator');
-        me.style.display = 'none'; crush.style.display = 'none'; typing.style.display = 'none'; btn.disabled = true;
-        me.style.display = 'block';
-        setTimeout(() => { typing.style.display = 'block'; }, 1000);
-        setTimeout(() => {
-            typing.style.display = 'none'; crush.style.display = 'block'; btn.disabled = false;
-            const resps = ["¡Hola! Pensaba en ti... 😍", "Visto ✔✔", "¿Nos vemos? 🥪", "¿Quién eres? 🤡", "Estoy salvando el mundo 🦸‍♂️", "Solo amigos... 😬", "¡Me encantas! ❤️"];
-            const r = resps[Math.floor(Math.random()*resps.length)];
-            crush.style.color = r.includes("Visto") ? "#aaa" : "#555";
-            crush.innerText = r;
-        }, 3500);
-    }
-
-    // EL LÁPIZ
-    function initLapiz() {
-        lapizStep = 0;
-        lapizAngle = 0;
-        document.getElementById('magic-pencil').style.transform = `rotate(0deg)`;
-        document.getElementById('lapiz-instruction').innerHTML = "Poned el móvil en el centro.<br>Gira para elegir a la primera persona.";
-        document.getElementById('lapiz-result').style.display = 'none';
-        document.getElementById('btn-lapiz').innerText = "¡Girar!";
-    }
-
-    function giraLapiz() {
-        const pencil = document.getElementById('magic-pencil');
-        const instruction = document.getElementById('lapiz-instruction');
-        const result = document.getElementById('lapiz-result');
-        const btn = document.getElementById('btn-lapiz');
-
-        if (lapizStep === 2) {
-            initLapiz();
-            return;
-        }
-
-        btn.disabled = true;
-        const randomSpin = 720 + Math.random() * 360;
-        lapizAngle += randomSpin;
-        pencil.style.transform = `rotate(${lapizAngle}deg)`;
-
-        setTimeout(() => {
-            btn.disabled = false;
-            if (lapizStep === 0) {
-                instruction.innerText = "¡Tenemos al primero! Ahora gira para ver con quién le toca...";
-                btn.innerText = "Girar de nuevo";
-                lapizStep = 1;
-            } else if (lapizStep === 1) {
-                instruction.innerText = "¡La suerte está echada!";
-                result.style.display = 'block';
-                const acciones = ["¡Un Beso! 💋", "¡Un Abrazo! 🤗", "¡Beso en la mejilla! 😘", "¡Abrazo de oso! 🐻"];
-                result.innerHTML = `<span style="font-size:1.5em; color:#ff6b6b; font-weight:bold;">${acciones[Math.floor(Math.random()*acciones.length)]}</span>`;
-                btn.innerText = "Jugar otra vez";
-                lapizStep = 2;
-            }
-        }, 3000);
-    }
-
-    // VERDAD O RETO
     function resetVor() {
         document.getElementById('vor-instruction').innerText = "Gira la flecha para ver a quién le toca.";
         document.getElementById('vor-actions').style.display = 'none';
@@ -1132,15 +1198,15 @@
         
         do {
             spin = 1080 + Math.random() * 720; 
-            finalAngleMod = (arrowAngle + spin) % 360;
-            var diff = Math.abs(finalAngleMod - lastArrowFinalAngle);
+            finalAngleMod = (vorArrowAngle + spin) % 360;
+            var diff = Math.abs(finalAngleMod - lastVorArrowFinalAngle);
             if (diff > 180) diff = 360 - diff; 
             attempts++;
         } while (diff < 45 && attempts < 10);
         
-        arrowAngle += spin;
-        lastArrowFinalAngle = finalAngleMod;
-        arrow.style.transform = `rotate(${arrowAngle}deg)`;
+        vorArrowAngle += spin;
+        lastVorArrowFinalAngle = finalAngleMod;
+        arrow.style.transform = `rotate(${vorArrowAngle}deg)`;
 
         setTimeout(() => {
             document.getElementById('vor-instruction').innerText = "¡Tú! Elige tu destino:";
